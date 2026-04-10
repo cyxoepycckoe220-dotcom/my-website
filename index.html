@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>SiteMaker — создай свой сайт онлайн</title>
+    <title>SiteMaker — создай свой сайт онлайн + Чат</title>
     <style>
         * {
             margin: 0;
@@ -32,6 +32,25 @@
         body.dark-theme .editor-panel {
             background: #2a2a2a;
             color: white;
+        }
+
+        body.dark-theme .chat-panel {
+            background: #2a2a2a;
+            border-left-color: #444;
+        }
+
+        body.dark-theme .chat-messages {
+            background: #1e1e1e;
+        }
+
+        body.dark-theme .chat-message {
+            background: #3a3a3a;
+        }
+
+        body.dark-theme .chat-input input {
+            background: #3a3a3a;
+            color: white;
+            border-color: #555;
         }
 
         body.dark-theme .tool-group {
@@ -121,7 +140,7 @@
             flex-wrap: wrap;
         }
 
-        .editor-btn, .exit-btn, .online-btn, .theme-btn, .export-btn {
+        .editor-btn, .exit-btn, .online-btn, .theme-btn, .export-btn, .chat-toggle-btn {
             padding: 8px 16px;
             border-radius: 30px;
             border: none;
@@ -130,7 +149,7 @@
             transition: transform 0.2s;
         }
 
-        .editor-btn:active, .exit-btn:active, .theme-btn:active, .export-btn:active {
+        .editor-btn:active, .exit-btn:active, .theme-btn:active, .export-btn:active, .chat-toggle-btn:active {
             transform: scale(0.95);
         }
 
@@ -139,6 +158,7 @@
         .online-btn { background: rgba(255,255,255,0.2); color: white; cursor: default; }
         .theme-btn { background: rgba(255,255,255,0.3); color: white; }
         .export-btn { background: #28a745; color: white; }
+        .chat-toggle-btn { background: #ff6b6b; color: white; }
 
         /* Контент страницы */
         .page-content {
@@ -343,19 +363,148 @@
             animation: fadeInUp 0.5s ease;
         }
 
-        /* Блоки кода */
-        .code-block {
-            background: #1e1e1e;
-            color: #d4d4d4;
-            font-family: 'Courier New', monospace;
-            font-size: 13px;
+        /* ========== ЧАТ ========== */
+        .chat-panel {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 350px;
+            height: 450px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.3);
+            z-index: 300;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            border: 1px solid #ddd;
+        }
+
+        .chat-panel.hidden {
+            transform: scale(0);
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 15px;
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .chat-header h3 {
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chat-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
             padding: 15px;
-            border-radius: 12px;
-            overflow-x: auto;
-            white-space: pre-wrap;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: #f9f9f9;
+        }
+
+        .chat-message {
+            max-width: 80%;
+            padding: 8px 12px;
+            border-radius: 18px;
+            font-size: 14px;
             word-wrap: break-word;
-            margin: 10px 0;
-            border-left: 4px solid #667eea;
+            animation: fadeInUp 0.2s ease;
+        }
+
+        .chat-message.my-message {
+            background: #667eea;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-message.other-message {
+            background: #e0e0e0;
+            color: #333;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+
+        body.dark-theme .chat-message.other-message {
+            background: #3a3a3a;
+            color: white;
+        }
+
+        .message-sender {
+            font-size: 10px;
+            font-weight: bold;
+            margin-bottom: 3px;
+            opacity: 0.7;
+        }
+
+        .message-time {
+            font-size: 9px;
+            margin-top: 3px;
+            opacity: 0.6;
+            text-align: right;
+        }
+
+        .chat-input {
+            display: flex;
+            padding: 12px;
+            gap: 10px;
+            border-top: 1px solid #ddd;
+            background: white;
+            border-radius: 0 0 20px 20px;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 25px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .chat-input button {
+            padding: 10px 20px;
+            border-radius: 25px;
+            border: none;
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .chat-input button:active {
+            transform: scale(0.95);
+        }
+
+        /* Адаптив для чата */
+        @media (max-width: 768px) {
+            .chat-panel {
+                width: calc(100% - 40px);
+                right: 20px;
+                left: 20px;
+                bottom: 20px;
+                height: 400px;
+            }
         }
 
         /* Адаптив */
@@ -396,6 +545,19 @@
             border: 2px dashed #667eea;
             background: rgba(102,126,234,0.1);
         }
+
+        /* Индикатор новых сообщений */
+        .chat-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ff4757;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -404,6 +566,7 @@
         <div class="toolbar-buttons">
             <button id="themeBtn" class="theme-btn">🌙 Тёмная тема</button>
             <button id="exportBtn" class="export-btn">💾 Экспорт</button>
+            <button id="chatToggleBtn" class="chat-toggle-btn">💬 Чат</button>
             <button id="editorBtn" class="editor-btn">✏️ Редактор</button>
             <button id="exitEditorBtn" class="exit-btn">🔒 Выйти</button>
             <button id="onlineCount" class="online-btn">👥 0 онлайн</button>
@@ -415,7 +578,7 @@
             <h1>✨ Добро пожаловать в SiteMaker!</h1>
             <p>Нажми на кнопку "Редактор", чтобы начать создавать свой сайт</p>
             <p>Все изменения видны всем онлайн! А ещё ты видишь мышки других людей 🖱️</p>
-            <p style="margin-top: 20px; font-size: 14px;">💡 Подсказка: перетаскивай блоки мышкой, чтобы менять порядок</p>
+            <p style="margin-top: 20px; font-size: 14px;">💬 Нажми "Чат" чтобы общаться с посетителями!</p>
         </div>
     </div>
 
@@ -448,6 +611,25 @@
         </div>
     </div>
 
+    <!-- Чат -->
+    <div id="chatPanel" class="chat-panel hidden">
+        <div class="chat-header" id="chatHeader">
+            <h3>💬 Общий чат</h3>
+            <button id="chatCloseBtn" class="chat-close">✖️</button>
+        </div>
+        <div id="chatMessages" class="chat-messages">
+            <div class="chat-message other-message">
+                <div class="message-sender">✨ Система</div>
+                Добро пожаловать в чат SiteMaker!
+                <div class="message-time"></div>
+            </div>
+        </div>
+        <div class="chat-input">
+            <input type="text" id="chatInput" placeholder="Напиши сообщение..." maxlength="200">
+            <button id="chatSendBtn">📤</button>
+        </div>
+    </div>
+
     <div id="myCursor" class="my-cursor"></div>
 
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -473,6 +655,66 @@
         let isEditorMode = false;
         let siteElements = [];
         let dragSrcElement = null;
+        let isChatOpen = false;
+        
+        // ========== ЧАТ ==========
+        let messagesRef = database.ref('chat_messages');
+        
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if (!text) return;
+            
+            const message = {
+                id: Date.now() + '_' + Math.random(),
+                sender: myName,
+                senderId: myId,
+                text: text,
+                timestamp: Date.now()
+            };
+            
+            messagesRef.push(message);
+            input.value = '';
+        }
+        
+        function displayMessage(message) {
+            const container = document.getElementById('chatMessages');
+            const isMyMessage = message.senderId === myId;
+            const date = new Date(message.timestamp);
+            const timeStr = `${date.getHours().toString().padStart(2,'0')}:${date.getMinutes().toString().padStart(2,'0')}`;
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${isMyMessage ? 'my-message' : 'other-message'}`;
+            messageDiv.innerHTML = `
+                <div class="message-sender">${escapeHtml(message.sender)}</div>
+                ${escapeHtml(message.text)}
+                <div class="message-time">${timeStr}</div>
+            `;
+            container.appendChild(messageDiv);
+            
+            // Прокрутка вниз
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        function listenMessages() {
+            messagesRef.limitToLast(50).on('child_added', (snapshot) => {
+                const message = snapshot.val();
+                displayMessage(message);
+            });
+        }
+        
+        function toggleChat() {
+            const chatPanel = document.getElementById('chatPanel');
+            isChatOpen = !isChatOpen;
+            if (isChatOpen) {
+                chatPanel.classList.remove('hidden');
+                // Прокрутка вниз
+                const container = document.getElementById('chatMessages');
+                container.scrollTop = container.scrollHeight;
+            } else {
+                chatPanel.classList.add('hidden');
+            }
+        }
         
         // ========== ТЁМНАЯ ТЕМА ==========
         function initTheme() {
@@ -830,6 +1072,7 @@
             listenCursors();
             listenSiteChanges();
             initTheme();
+            listenMessages();
             
             setInterval(() => {
                 if (myId) {
@@ -844,6 +1087,13 @@
             document.getElementById('clearSiteBtn').onclick = clearSite;
             document.getElementById('themeBtn').onclick = toggleTheme;
             document.getElementById('exportBtn').onclick = exportSite;
+            document.getElementById('chatToggleBtn').onclick = toggleChat;
+            document.getElementById('chatCloseBtn').onclick = toggleChat;
+            document.getElementById('chatSendBtn').onclick = sendMessage;
+            
+            document.getElementById('chatInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendMessage();
+            });
             
             document.getElementById('importBtn').onclick = () => {
                 document.getElementById('importFile').click();
@@ -861,7 +1111,7 @@
             document.getElementById('bgColor').onchange = applyStyles;
             document.getElementById('textColor').onchange = applyStyles;
             
-            // Тройной тап по логотипу для входа в админку
+            // Тройной тап по логотипу для входа в редактор
             let tapCount = 0;
             let tapTimer;
             document.getElementById('logo').onclick = () => {
