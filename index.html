@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>SiteMaker — создай свой сайт онлайн + Чат</title>
+    <title>SiteMaker — создай свой сайт онлайн</title>
     <style>
         * {
             margin: 0;
@@ -51,6 +51,16 @@
             background: #3a3a3a;
             color: white;
             border-color: #555;
+        }
+
+        body.dark-theme .tab {
+            background: #3a3a3a;
+            color: #aaa;
+        }
+
+        body.dark-theme .tab.active {
+            background: #667eea;
+            color: white;
         }
 
         body.dark-theme .tool-group {
@@ -240,19 +250,20 @@
             background: #e04350;
         }
 
-        /* Панель редактора */
+        /* Панель редактора с вкладками */
         .editor-panel {
             position: fixed;
             right: 0;
             top: 70px;
-            width: 350px;
+            width: 380px;
             background: white;
             border-radius: 20px 0 0 20px;
             box-shadow: -4px 4px 30px rgba(0,0,0,0.2);
             z-index: 200;
             transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
             max-height: calc(100vh - 70px);
-            overflow-y: auto;
         }
 
         .editor-panel.hidden {
@@ -267,8 +278,6 @@
             background: #667eea;
             color: white;
             border-radius: 20px 0 0 0;
-            position: sticky;
-            top: 0;
         }
 
         .close-editor {
@@ -279,19 +288,68 @@
             cursor: pointer;
         }
 
-        .editor-tools {
+        /* Вкладки */
+        .tabs {
+            display: flex;
+            background: #f0f0f0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        body.dark-theme .tabs {
+            background: #3a3a3a;
+            border-bottom-color: #555;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            background: #f0f0f0;
+            border: none;
+            font-weight: bold;
+            transition: all 0.2s;
+            color: #666;
+        }
+
+        body.dark-theme .tab {
+            background: #3a3a3a;
+            color: #aaa;
+        }
+
+        .tab.active {
+            background: white;
+            color: #667eea;
+            border-bottom: 2px solid #667eea;
+        }
+
+        body.dark-theme .tab.active {
+            background: #2a2a2a;
+            color: #8b9eff;
+            border-bottom-color: #8b9eff;
+        }
+
+        .tab-content {
+            display: none;
             padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .tab-content.active {
+            display: block;
         }
 
         .tool-group {
-            margin-bottom: 25px;
-            padding-bottom: 20px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
             border-bottom: 1px solid #eee;
         }
 
         .tool-group h4 {
             margin-bottom: 12px;
             color: #667eea;
+            font-size: 14px;
         }
 
         body.dark-theme .tool-group h4 {
@@ -328,7 +386,7 @@
         .tool-btn {
             display: inline-block;
             margin: 5px;
-            padding: 8px 16px;
+            padding: 10px 16px;
             background: #f0f0f0;
             border: none;
             border-radius: 25px;
@@ -339,10 +397,6 @@
 
         .tool-btn:active {
             transform: scale(0.95);
-        }
-
-        .tool-btn:hover {
-            background: #e0e0e0;
         }
 
         .tool-btn.danger {
@@ -363,7 +417,70 @@
             animation: fadeInUp 0.5s ease;
         }
 
-        /* ========== ЧАТ ========== */
+        /* Чат внутри редактора */
+        .chat-messages-mini {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        body.dark-theme .chat-messages-mini {
+            background: #1e1e1e;
+        }
+
+        .chat-message-mini {
+            padding: 8px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            word-wrap: break-word;
+        }
+
+        .chat-message-mini.my-message {
+            background: #667eea;
+            color: white;
+            align-self: flex-end;
+        }
+
+        .chat-message-mini.other-message {
+            background: #e0e0e0;
+            color: #333;
+            align-self: flex-start;
+        }
+
+        body.dark-theme .chat-message-mini.other-message {
+            background: #3a3a3a;
+            color: white;
+        }
+
+        .chat-input-mini {
+            display: flex;
+            gap: 8px;
+        }
+
+        .chat-input-mini input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 25px;
+            border: 1px solid #ddd;
+            font-size: 12px;
+        }
+
+        .chat-input-mini button {
+            padding: 10px 15px;
+            border-radius: 25px;
+            border: none;
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+        }
+
+        /* Плавающий чат */
         .chat-panel {
             position: fixed;
             bottom: 20px;
@@ -492,21 +609,6 @@
             font-weight: bold;
         }
 
-        .chat-input button:active {
-            transform: scale(0.95);
-        }
-
-        /* Адаптив для чата */
-        @media (max-width: 768px) {
-            .chat-panel {
-                width: calc(100% - 40px);
-                right: 20px;
-                left: 20px;
-                bottom: 20px;
-                height: 400px;
-            }
-        }
-
         /* Адаптив */
         @media (max-width: 768px) {
             .toolbar {
@@ -523,7 +625,7 @@
                 top: auto;
                 bottom: 0;
                 border-radius: 20px 20px 0 0;
-                max-height: 60vh;
+                max-height: 70vh;
             }
 
             .page-content {
@@ -532,6 +634,14 @@
 
             .welcome-message {
                 padding: 30px;
+            }
+
+            .chat-panel {
+                width: calc(100% - 40px);
+                right: 20px;
+                left: 20px;
+                bottom: 20px;
+                height: 400px;
             }
         }
 
@@ -544,19 +654,6 @@
         .drag-over {
             border: 2px dashed #667eea;
             background: rgba(102,126,234,0.1);
-        }
-
-        /* Индикатор новых сообщений */
-        .chat-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background: #ff4757;
-            color: white;
-            font-size: 10px;
-            padding: 2px 6px;
-            border-radius: 10px;
-            display: none;
         }
     </style>
 </head>
@@ -582,12 +679,23 @@
         </div>
     </div>
 
+    <!-- Панель редактора с вкладками -->
     <div id="editorPanel" class="editor-panel hidden">
         <div class="editor-header">
             <h3>🎨 Редактор сайта</h3>
             <button id="closeEditorBtn" class="close-editor">✖️</button>
         </div>
-        <div class="editor-tools">
+        
+        <!-- Вкладки -->
+        <div class="tabs">
+            <button class="tab active" data-tab="blocks">📦 Блоки</button>
+            <button class="tab" data-tab="styles">🎨 Стили</button>
+            <button class="tab" data-tab="tools">⚙️ Управление</button>
+            <button class="tab" data-tab="chatTab">💬 Чат</button>
+        </div>
+        
+        <!-- Вкладка: Блоки -->
+        <div class="tab-content active" id="tab-blocks">
             <div class="tool-group">
                 <h4>➕ Добавить блок</h4>
                 <button id="addTitleBtn" class="tool-btn">📌 Заголовок</button>
@@ -596,22 +704,51 @@
                 <button id="addImageBtn" class="tool-btn">🖼️ Картинка</button>
             </div>
             <div class="tool-group">
-                <h4>🎨 Стили</h4>
+                <h4>💡 Подсказка</h4>
+                <p style="font-size: 12px; color: #888;">Перетаскивай блоки мышкой, чтобы менять их порядок</p>
+            </div>
+        </div>
+        
+        <!-- Вкладка: Стили -->
+        <div class="tab-content" id="tab-styles">
+            <div class="tool-group">
+                <h4>🎨 Цвета</h4>
                 <label>Цвет фона:</label>
                 <input type="color" id="bgColor" value="#f5f5f5">
                 <label>Цвет текста:</label>
                 <input type="color" id="textColor" value="#000000">
             </div>
+        </div>
+        
+        <!-- Вкладка: Управление -->
+        <div class="tab-content" id="tab-tools">
             <div class="tool-group">
-                <h4>⚡ Управление</h4>
+                <h4>⚡ Управление сайтом</h4>
                 <button id="clearSiteBtn" class="tool-btn danger">🗑️ Очистить сайт</button>
                 <button id="importBtn" class="tool-btn success" style="margin-top: 10px;">📂 Импорт из файла</button>
                 <input type="file" id="importFile" accept=".json" style="display: none;">
             </div>
         </div>
+        
+        <!-- Вкладка: Чат в редакторе -->
+        <div class="tab-content" id="tab-chatTab">
+            <div class="tool-group">
+                <h4>💬 Чат посетителей</h4>
+                <div id="chatMessagesMini" class="chat-messages-mini">
+                    <div class="chat-message-mini other-message">
+                        <strong>✨ Система</strong><br>
+                        Добро пожаловать в чат!
+                    </div>
+                </div>
+                <div class="chat-input-mini">
+                    <input type="text" id="chatInputMini" placeholder="Напиши сообщение..." maxlength="200">
+                    <button id="chatSendMiniBtn">📤</button>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Чат -->
+    <!-- Плавающий чат -->
     <div id="chatPanel" class="chat-panel hidden">
         <div class="chat-header" id="chatHeader">
             <h3>💬 Общий чат</h3>
@@ -657,28 +794,51 @@
         let dragSrcElement = null;
         let isChatOpen = false;
         
+        // ========== ВКЛАДКИ ==========
+        function initTabs() {
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabName = tab.dataset.tab;
+                    // Убираем активные классы
+                    tabs.forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    // Добавляем активные
+                    tab.classList.add('active');
+                    const activeContent = document.getElementById(`tab-${tabName}`);
+                    if (activeContent) activeContent.classList.add('active');
+                });
+            });
+        }
+        
         // ========== ЧАТ ==========
         let messagesRef = database.ref('chat_messages');
         
-        function sendMessage() {
-            const input = document.getElementById('chatInput');
-            const text = input.value.trim();
-            if (!text) return;
+        function sendMessageToChat(text, source = 'main') {
+            if (!text.trim()) return;
             
             const message = {
                 id: Date.now() + '_' + Math.random(),
                 sender: myName,
                 senderId: myId,
-                text: text,
+                text: text.trim(),
                 timestamp: Date.now()
             };
             
             messagesRef.push(message);
-            input.value = '';
+            
+            if (source === 'mini') {
+                document.getElementById('chatInputMini').value = '';
+            } else {
+                document.getElementById('chatInput').value = '';
+            }
         }
         
-        function displayMessage(message) {
+        function displayMessageInMain(message) {
             const container = document.getElementById('chatMessages');
+            if (!container) return;
             const isMyMessage = message.senderId === myId;
             const date = new Date(message.timestamp);
             const timeStr = `${date.getHours().toString().padStart(2,'0')}:${date.getMinutes().toString().padStart(2,'0')}`;
@@ -691,15 +851,31 @@
                 <div class="message-time">${timeStr}</div>
             `;
             container.appendChild(messageDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        function displayMessageInMini(message) {
+            const container = document.getElementById('chatMessagesMini');
+            if (!container) return;
+            const isMyMessage = message.senderId === myId;
+            const date = new Date(message.timestamp);
+            const timeStr = `${date.getHours().toString().padStart(2,'0')}:${date.getMinutes().toString().padStart(2,'0')}`;
             
-            // Прокрутка вниз
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message-mini ${isMyMessage ? 'my-message' : 'other-message'}`;
+            messageDiv.innerHTML = `
+                <strong>${escapeHtml(message.sender)}</strong> ${timeStr}<br>
+                ${escapeHtml(message.text)}
+            `;
+            container.appendChild(messageDiv);
             container.scrollTop = container.scrollHeight;
         }
         
         function listenMessages() {
             messagesRef.limitToLast(50).on('child_added', (snapshot) => {
                 const message = snapshot.val();
-                displayMessage(message);
+                displayMessageInMain(message);
+                displayMessageInMini(message);
             });
         }
         
@@ -708,9 +884,8 @@
             isChatOpen = !isChatOpen;
             if (isChatOpen) {
                 chatPanel.classList.remove('hidden');
-                // Прокрутка вниз
                 const container = document.getElementById('chatMessages');
-                container.scrollTop = container.scrollHeight;
+                if (container) container.scrollTop = container.scrollHeight;
             } else {
                 chatPanel.classList.add('hidden');
             }
@@ -1073,6 +1248,7 @@
             listenSiteChanges();
             initTheme();
             listenMessages();
+            initTabs();
             
             setInterval(() => {
                 if (myId) {
@@ -1089,10 +1265,15 @@
             document.getElementById('exportBtn').onclick = exportSite;
             document.getElementById('chatToggleBtn').onclick = toggleChat;
             document.getElementById('chatCloseBtn').onclick = toggleChat;
-            document.getElementById('chatSendBtn').onclick = sendMessage;
+            
+            document.getElementById('chatSendBtn').onclick = () => sendMessageToChat(document.getElementById('chatInput').value, 'main');
+            document.getElementById('chatSendMiniBtn').onclick = () => sendMessageToChat(document.getElementById('chatInputMini').value, 'mini');
             
             document.getElementById('chatInput').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') sendMessage();
+                if (e.key === 'Enter') sendMessageToChat(e.target.value, 'main');
+            });
+            document.getElementById('chatInputMini').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendMessageToChat(e.target.value, 'mini');
             });
             
             document.getElementById('importBtn').onclick = () => {
