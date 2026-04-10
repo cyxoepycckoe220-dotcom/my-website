@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Новостной портал</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📰 Новостной портал</h1>
+            <p>Актуальные новости каждый день</p>
+        </div>
+
+        <!-- Сетка с новостями (видна всем) -->
+        <div id="newsGrid" class="news-grid">
+            <div class="empty-state">
+                📭 Новостей пока нет
+            </div>
+        </div>
+
+        <!-- Скрытая админ-панель (появляется только после входа) -->
+        <div id="adminPanel" class="admin-panel hidden">
+            <div class="admin-header">
+                <h2>🔐 Админ-панель</h2>
+                <button id="logoutBtn" class="logout-btn">🚪 Выйти</button>
+            </div>
+            
+            <div class="form-group">
+                <label>📌 Заголовок</label>
+                <input type="text" id="titleInput" placeholder="Заголовок новости">
+            </div>
+            <div class="form-group">
+                <label>📝 Краткое описание</label>
+                <textarea id="previewInput" placeholder="Коротко о главном..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>📖 Полное описание</label>
+                <textarea id="fullInput" placeholder="Подробности..."></textarea>
+            </div>
+            <button id="addNewsBtn" class="btn-add">➕ Добавить новость</button>
+        </div>
+    </div>
+
+    <!-- Скрытая форма входа в админку (всплывает по команде) -->
+    <div id="loginOverlay" class="login-overlay hidden">
+        <div class="login-box">
+            <h3>🔐 Вход в админ-панель</h3>
+            <input type="password" id="adminPassword" placeholder="Введите секретный код" autocomplete="off">
+            <button id="loginBtn">Войти</button>
+            <p class="login-hint">Подсказка: секретный код — <strong>admin123</strong></p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
