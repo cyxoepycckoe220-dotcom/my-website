@@ -1117,3 +1117,111 @@
                 showToast(`📞 Приглашение отправлено ${selectedUser.nickname}!`);
                 
                 const callBtn = document.getElementById('callBtn');
+                callBtn.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    callBtn.style.transform = 'scale(1)';
+                }, 200);
+            }
+        }
+        
+        // ========== ПАНЕЛЬ ВКЛАДОК ==========
+        function initTabs() {
+            const tabs = document.querySelectorAll('.panel-tab');
+            const panels = {
+                chats: document.getElementById('chatsPanel'),
+                channels: document.getElementById('channelsPanel'),
+                groups: document.getElementById('groupsPanel')
+            };
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    if (tab.classList.contains('disabled')) {
+                        showToast('🔧 В разработке! Скоро появится');
+                        return;
+                    }
+                    
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    Object.values(panels).forEach(p => p.classList.add('hidden'));
+                    panels[tab.dataset.tab].classList.remove('hidden');
+                });
+            });
+        }
+        
+        // ========== ОНЛАЙН СТАТУС ==========
+        function updateOnlineStatus() {
+            setInterval(() => {
+                if (myId) database.ref('users/' + myId).update({ online: true, lastSeen: Date.now() });
+            }, 10000);
+            
+            window.addEventListener('beforeunload', () => {
+                if (myId) database.ref('users/' + myId).update({ online: false, lastSeen: Date.now() });
+            });
+        }
+        
+        function watchUserStatus() {
+            database.ref('users').on('value', () => {
+                renderDialogs();
+                if (currentChatId && users[currentChatId]) {
+                    document.getElementById('chatUserStatus').innerHTML = users[currentChatId].online ? '🟢 Онлайн' : '⚫ Офлайн';
+                }
+            });
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function initMobileMenu() {
+            const menuBtn = document.getElementById('menuBtn');
+            const usersPanel = document.getElementById('usersPanel');
+            if (menuBtn) {
+                menuBtn.addEventListener('click', () => usersPanel.classList.toggle('open'));
+            }
+            document.addEventListener('click', (e) => {
+                if (window.innerWidth <= 768 && e.target.closest('.dialog-item')) {
+                    usersPanel.classList.remove('open');
+                }
+                if (!e.target.closest('.profile-area')) {
+                    closeProfileMenu();
+                }
+            });
+        }
+        
+        function initApp() {
+            loadUsers();
+            updateOnlineStatus();
+            watchUserStatus();
+            initTabs();
+            initMobileMenu();
+            initTheme();
+            
+            document.getElementById('sendBtn').addEventListener('click', sendMessage);
+            document.getElementById('messageInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendMessage();
+            });
+            
+            document.getElementById('callBtn').addEventListener('click', sendInvite);
+            document.getElementById('profileArea').addEventListener('click', toggleProfileMenu);
+            document.getElementById('logoutMenuItem').addEventListener('click', logout);
+            
+            document.querySelectorAll('.theme-option').forEach(opt => {
+                opt.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    setTheme(opt.dataset.theme);
+                });
+            });
+        }
+        
+        document.getElementById('registerBtn').addEventListener('click', register);
+        document.getElementById('nicknameInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') register();
+        });
+        
+        checkExistingUser();
+    </script>
+</body>
+</html>
