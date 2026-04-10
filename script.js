@@ -1,45 +1,41 @@
-// === Настройки ===
-const SUPABASE_URL = 'https://cnwwqsxvmcxfwfijsflb.supabase.co';  // Замени на свой
-const SUPABASE_KEY = 'sb_publishable_w8Zqb5UZs93sZJLvlbLHWg_4ykyd3Ey';              // Замени на свой
+// === ПОДКЛЮЧЕНИЕ К БЕСПЛАТНОМУ СЕРВЕРУ ДЛЯ МЫШЕК ===
+// Используем публичный WebSocket сервер (бесплатно, не требует регистрации)
+const SOCKET_URL = 'wss://socketsbay.com/wss/v2/1/sitemaker';
 
-// ВРЕМЕННОЕ РЕШЕНИЕ (без сервера) - сохраняем в localStorage и синхронизируем через BroadcastChannel
-// Это работает на одном устройстве. Чтобы работало на всех - нужен Supabase или Firebase
+let socket = null;
+let myId = Math.random().toString(36).substr(2, 8);
+let myName = 'User_' + myId.substr(0, 4);
+let remoteCursors = {};
 
-// Используем localStorage + событие для синхронизации на том же устройстве
+// === ОСТАЛЬНЫЕ ПЕРЕМЕННЫЕ ===
 let siteElements = [];
 let isEditorMode = false;
-let currentUserId = Math.random().toString(36).substr(2, 9);
 
-// Загрузка сохранённого сайта
+// === ЗАГРУЗКА САЙТА (localStorage) ===
 function loadSite() {
     const saved = localStorage.getItem('sitemaker_site');
     if (saved) {
         siteElements = JSON.parse(saved);
     } else {
-        // Начальные элементы
         siteElements = [
-            { id: 'title1', type: 'title', content: '✨ SiteMaker', styles: {} },
-            { id: 'text1', type: 'text', content: 'Создай свой сайт вместе с друзьями! Нажми на кнопку "Редактор" и добавь что-нибудь.', styles: {} },
-            { id: 'btn1', type: 'button', content: 'Круто!', link: '#', styles: {} }
+            { id: 'title1', type: 'title', content: '✨ SiteMaker', link: '', styles: {} },
+            { id: 'text1', type: 'text', content: 'Создай свой сайт вместе с друзьями! Ты видишь их мышки? 🖱️', link: '', styles: {} },
+            { id: 'btn1', type: 'button', content: 'Нажми меня', link: '#', styles: {} }
         ];
     }
     renderSite();
 }
 
-// Сохранение сайта
 function saveSite() {
     localStorage.setItem('sitemaker_site', JSON.stringify(siteElements));
-    // Отправляем сообщение другим вкладкам (на том же устройстве)
     broadcastUpdate();
 }
 
-// Синхронизация между вкладками
 function broadcastUpdate() {
     const channel = new BroadcastChannel('sitemaker');
     channel.postMessage({ type: 'UPDATE', elements: siteElements });
 }
 
-// Получение обновлений
 const channel = new BroadcastChannel('sitemaker');
 channel.onmessage = (event) => {
     if (event.data.type === 'UPDATE') {
@@ -48,18 +44,17 @@ channel.onmessage = (event) => {
     }
 };
 
-// Рендер сайта
+// === РЕНДЕР САЙТА ===
 function renderSite() {
     const container = document.getElementById('pageContent');
     if (!container) return;
     
-    // Применяем стили к body
-    const bodyBg = localStorage.getItem('sitemaker_bgColor') || '#f5f5f5';
-    const bodyColor = localStorage.getItem('sitemaker_textColor') || '#000000';
-    const bodyFont = localStorage.getItem('sitemaker_fontFamily') || 'system-ui';
-    document.body.style.backgroundColor = bodyBg;
-    document.body.style.color = bodyColor;
-    document.body.style.fontFamily = bodyFont;
+    const bgColor = localStorage.getItem('sitemaker_bgColor') || '#f5f5f5';
+    const textColor = localStorage.getItem('sitemaker_textColor') || '#000000';
+    const fontFamily = localStorage.getItem('sitemaker_fontFamily') || 'system-ui';
+    document.body.style.backgroundColor = bgColor;
+    document.body.style.color = textColor;
+    document.body.style.fontFamily = fontFamily;
     
     container.innerHTML = '';
     
@@ -67,9 +62,7 @@ function renderSite() {
         const elementDiv = document.createElement('div');
         elementDiv.className = 'editable-element';
         elementDiv.dataset.id = element.id;
-        elementDiv.dataset.type = element.type;
         
-        // Содержимое в зависимости от типа
         if (element.type === 'title') {
             const h = document.createElement('h1');
             h.textContent = element.content;
@@ -103,12 +96,11 @@ function renderSite() {
             elementDiv.appendChild(div);
         }
         
-        // Кнопки управления (только в режиме редактора)
         if (isEditorMode) {
             const controls = document.createElement('div');
             controls.className = 'element-controls';
             controls.innerHTML = `
-                <button class="edit-element" onclick="editElement('${element.id}')">✏️</button>
+                <button onclick="editElement('${element.id}')">✏️</button>
                 <button class="delete-element" onclick="deleteElement('${element.id}')">🗑️</button>
             `;
             elementDiv.appendChild(controls);
@@ -117,107 +109,78 @@ function renderSite() {
         container.appendChild(elementDiv);
     });
     
-    // Если нет элементов и редактор выключен, показываем приветствие
     if (siteElements.length === 0 && !isEditorMode) {
-        container.innerHTML = `
-            <div class="welcome-message">
-                <h1>✨ Добро пожаловать в SiteMaker!</h1>
-                <p>Нажми на кнопку "Редактор", чтобы начать создавать свой сайт</p>
-            </div>
-        `;
+        container.innerHTML = `<div class="welcome-message"><h1>✨ SiteMaker</h1><p>Нажми "Редактор" чтобы начать!</p></div>`;
     }
 }
 
-// Добавление элемента
+// === УПРАВЛЕНИЕ ЭЛЕМЕНТАМИ ===
 function addElement(type) {
     let content = '';
     let link = '';
     
-    if (type === 'title') {
-        content = prompt('Введите заголовок:', 'Новый заголовок');
-    } else if (type === 'text') {
-        content = prompt('Введите текст:', 'Новый текст');
-    } else if (type === 'button') {
+    if (type === 'title') content = prompt('Заголовок:', 'Новый заголовок');
+    else if (type === 'text') content = prompt('Текст:', 'Новый текст');
+    else if (type === 'button') {
         content = prompt('Текст кнопки:', 'Нажми меня');
-        link = prompt('Ссылка (оставь пустым для #):', '#');
-    } else if (type === 'image') {
-        content = prompt('Введите URL картинки:', 'https://picsum.photos/300/200');
-    } else if (type === 'html') {
-        content = prompt('Введите HTML код:', '<div style="padding:20px;background:#f0f0f0;">Мой блок</div>');
+        link = prompt('Ссылка:', '#');
     }
+    else if (type === 'image') content = prompt('URL картинки:', 'https://picsum.photos/300/200');
+    else if (type === 'html') content = prompt('HTML код:', '<div>Мой блок</div>');
     
     if (!content && type !== 'html') return;
     
-    const newElement = {
+    siteElements.push({
         id: Date.now() + '_' + Math.random(),
         type: type,
         content: content || '',
         link: link || '#',
         styles: {}
-    };
-    
-    siteElements.push(newElement);
+    });
     saveSite();
     renderSite();
 }
 
-// Редактирование элемента
 window.editElement = function(id) {
-    const element = siteElements.find(e => e.id === id);
-    if (!element) return;
-    
-    let newContent = '';
-    if (element.type === 'title') {
-        newContent = prompt('Редактировать заголовок:', element.content);
-    } else if (element.type === 'text') {
-        newContent = prompt('Редактировать текст:', element.content);
-    } else if (element.type === 'button') {
-        newContent = prompt('Редактировать текст кнопки:', element.content);
-        const newLink = prompt('Редактировать ссылку:', element.link || '#');
-        element.link = newLink;
-    } else if (element.type === 'image') {
-        newContent = prompt('Редактировать URL картинки:', element.content);
-    } else if (element.type === 'html') {
-        newContent = prompt('Редактировать HTML:', element.content);
+    const el = siteElements.find(e => e.id === id);
+    if (!el) return;
+    let newContent = prompt('Редактировать:', el.content);
+    if (newContent) el.content = newContent;
+    if (el.type === 'button') {
+        let newLink = prompt('Ссылка:', el.link || '#');
+        if (newLink) el.link = newLink;
     }
-    
-    if (newContent) element.content = newContent;
     saveSite();
     renderSite();
 };
 
-// Удаление элемента
 window.deleteElement = function(id) {
-    if (confirm('Удалить этот элемент?')) {
+    if (confirm('Удалить?')) {
         siteElements = siteElements.filter(e => e.id !== id);
         saveSite();
         renderSite();
     }
 };
 
-// Очистка всего сайта
 function clearSite() {
-    if (confirm('⚠️ Очистить весь сайт? Все элементы будут удалены!')) {
+    if (confirm('Очистить всё?')) {
         siteElements = [];
         saveSite();
         renderSite();
     }
 }
 
-// Применение стилей
 function applyStyles() {
-    const bgColor = document.getElementById('bgColor')?.value;
-    const textColor = document.getElementById('textColor')?.value;
-    const fontFamily = document.getElementById('fontFamily')?.value;
-    
-    if (bgColor) localStorage.setItem('sitemaker_bgColor', bgColor);
-    if (textColor) localStorage.setItem('sitemaker_textColor', textColor);
-    if (fontFamily) localStorage.setItem('sitemaker_fontFamily', fontFamily);
-    
+    const bg = document.getElementById('bgColor')?.value;
+    const color = document.getElementById('textColor')?.value;
+    const font = document.getElementById('fontFamily')?.value;
+    if (bg) localStorage.setItem('sitemaker_bgColor', bg);
+    if (color) localStorage.setItem('sitemaker_textColor', color);
+    if (font) localStorage.setItem('sitemaker_fontFamily', font);
     renderSite();
 }
 
-// Вход в редактор
+// === РЕЖИМ РЕДАКТОРА ===
 function enterEditor() {
     isEditorMode = true;
     document.getElementById('editorBtn').style.display = 'none';
@@ -226,7 +189,6 @@ function enterEditor() {
     renderSite();
 }
 
-// Выход из редактора
 function exitEditor() {
     isEditorMode = false;
     document.getElementById('editorBtn').style.display = 'block';
@@ -235,75 +197,170 @@ function exitEditor() {
     renderSite();
 }
 
-// Кастомная мышка
-function initCustomCursor() {
-    const cursor = document.getElementById('mouseCursor');
+// === ЖИВЫЕ МЫШКИ (WebSocket) ===
+function initWebSocket() {
+    try {
+        socket = new WebSocket(SOCKET_URL);
+        
+        socket.onopen = () => {
+            console.log('🟢 Подключено к серверу мышек');
+            // Отправляем приветствие
+            socket.send(JSON.stringify({
+                type: 'join',
+                id: myId,
+                name: myName
+            }));
+        };
+        
+        socket.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                
+                if (data.type === 'join') {
+                    // Добавляем новую мышку
+                    if (!remoteCursors[data.id] && data.id !== myId) {
+                        remoteCursors[data.id] = {
+                            id: data.id,
+                            name: data.name,
+                            x: 0,
+                            y: 0
+                        };
+                        renderRemoteCursors();
+                    }
+                }
+                else if (data.type === 'move') {
+                    // Обновляем позицию мышки
+                    if (remoteCursors[data.id]) {
+                        remoteCursors[data.id].x = data.x;
+                        remoteCursors[data.id].y = data.y;
+                        renderRemoteCursors();
+                    }
+                }
+                else if (data.type === 'leave') {
+                    // Удаляем мышку
+                    delete remoteCursors[data.id];
+                    renderRemoteCursors();
+                }
+            } catch(e) {}
+        };
+        
+        socket.onclose = () => {
+            console.log('🔴 Отключено от сервера');
+            setTimeout(initWebSocket, 3000);
+        };
+        
+        socket.onerror = () => {
+            console.log('⚠️ Ошибка подключения');
+        };
+    } catch(e) {
+        console.log('WebSocket не поддерживается');
+    }
+}
+
+// Отправляем движение мышки
+function sendMouseMove(x, y) {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({
+            type: 'move',
+            id: myId,
+            x: x,
+            y: y
+        }));
+    }
+}
+
+// Отправляем уход
+function sendLeave() {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({
+            type: 'leave',
+            id: myId
+        }));
+    }
+}
+
+// Рендер чужих мышек на экране
+function renderRemoteCursors() {
+    const container = document.getElementById('remoteCursorsContainer');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    for (let id in remoteCursors) {
+        const cursor = remoteCursors[id];
+        const cursorDiv = document.createElement('div');
+        cursorDiv.className = 'remote-cursor';
+        cursorDiv.style.left = cursor.x + 'px';
+        cursorDiv.style.top = cursor.y + 'px';
+        
+        // Случайный цвет для каждого пользователя
+        const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffaa00', '#ff00ff', '#00ffff'];
+        const colorIndex = (id.charCodeAt(0) || 0) % colors.length;
+        cursorDiv.style.border = `2px solid ${colors[colorIndex]}`;
+        cursorDiv.style.background = `${colors[colorIndex]}33`;
+        
+        cursorDiv.innerHTML = `<div class="cursor-name">${cursor.name}</div>`;
+        container.appendChild(cursorDiv);
+    }
+    
+    // Обновляем счётчик онлайн
+    const countBtn = document.getElementById('onlineCount');
+    if (countBtn) {
+        const onlineCount = Object.keys(remoteCursors).length + 1;
+        countBtn.innerHTML = `👥 ${onlineCount} онлайн`;
+    }
+}
+
+// === СВОЯ МЫШКА ===
+function initMyCursor() {
+    const cursor = document.getElementById('myCursor');
     if (!cursor) return;
     
     document.addEventListener('mousemove', (e) => {
-        cursor.style.left = e.clientX - 10 + 'px';
-        cursor.style.top = e.clientY - 10 + 'px';
+        cursor.style.left = (e.clientX - 12) + 'px';
+        cursor.style.top = (e.clientY - 12) + 'px';
+        sendMouseMove(e.clientX, e.clientY);
     });
     
-    document.addEventListener('mousedown', () => {
-        cursor.style.transform = 'scale(0.8)';
-    });
-    document.addEventListener('mouseup', () => {
-        cursor.style.transform = 'scale(1)';
+    document.addEventListener('mouseleave', () => {
+        sendLeave();
     });
 }
 
-// Онлайн-счётчик (имитация)
-let onlineUsers = 1;
-function updateOnlineCount() {
-    const countBtn = document.getElementById('onlineCount');
-    if (countBtn) {
-        countBtn.innerHTML = `👥 ${onlineUsers} онлайн`;
+// === ЗАПРОС ИМЕНИ ПОЛЬЗОВАТЕЛЯ ===
+function askUserName() {
+    const name = prompt('Введи своё имя (будут видеть другие):', myName);
+    if (name && name.trim()) {
+        myName = name.trim();
     }
 }
-setInterval(() => {
-    onlineUsers = Math.floor(Math.random() * 20) + 1;
-    updateOnlineCount();
-}, 10000);
 
-// === Инициализация ===
+// === ИНИЦИАЛИЗАЦИЯ ===
 document.addEventListener('DOMContentLoaded', () => {
+    askUserName();
     loadSite();
-    initCustomCursor();
-    updateOnlineCount();
+    initMyCursor();
+    initWebSocket();
     
-    // Кнопки редактора
-    const editorBtn = document.getElementById('editorBtn');
-    const exitEditorBtn = document.getElementById('exitEditorBtn');
-    const closeEditorBtn = document.getElementById('closeEditorBtn');
-    const clearSiteBtn = document.getElementById('clearSiteBtn');
-    const saveSiteBtn = document.getElementById('saveSiteBtn');
+    // Кнопки
+    document.getElementById('editorBtn')?.addEventListener('click', enterEditor);
+    document.getElementById('exitEditorBtn')?.addEventListener('click', exitEditor);
+    document.getElementById('closeEditorBtn')?.addEventListener('click', exitEditor);
+    document.getElementById('clearSiteBtn')?.addEventListener('click', clearSite);
+    document.getElementById('saveSiteBtn')?.addEventListener('click', saveSite);
     
-    if (editorBtn) editorBtn.onclick = enterEditor;
-    if (exitEditorBtn) exitEditorBtn.onclick = exitEditor;
-    if (closeEditorBtn) closeEditorBtn.onclick = exitEditor;
-    if (clearSiteBtn) clearSiteBtn.onclick = clearSite;
-    if (saveSiteBtn) saveSiteBtn.onclick = saveSite;
+    document.getElementById('addTextBtn')?.addEventListener('click', () => addElement('text'));
+    document.getElementById('addTitleBtn')?.addEventListener('click', () => addElement('title'));
+    document.getElementById('addButtonBtn')?.addEventListener('click', () => addElement('button'));
+    document.getElementById('addImageBtn')?.addEventListener('click', () => addElement('image'));
+    document.getElementById('addHtmlBtn')?.addEventListener('click', () => addElement('html'));
     
-    // Кнопки добавления
-    const addTextBtn = document.getElementById('addTextBtn');
-    const addTitleBtn = document.getElementById('addTitleBtn');
-    const addButtonBtn = document.getElementById('addButtonBtn');
-    const addImageBtn = document.getElementById('addImageBtn');
-    const addHtmlBtn = document.getElementById('addHtmlBtn');
-    
-    if (addTextBtn) addTextBtn.onclick = () => addElement('text');
-    if (addTitleBtn) addTitleBtn.onclick = () => addElement('title');
-    if (addButtonBtn) addButtonBtn.onclick = () => addElement('button');
-    if (addImageBtn) addImageBtn.onclick = () => addElement('image');
-    if (addHtmlBtn) addHtmlBtn.onclick = () => addElement('html');
-    
-    // Стили
-    const bgColor = document.getElementById('bgColor');
-    const textColor = document.getElementById('textColor');
-    const fontFamily = document.getElementById('fontFamily');
-    
-    if (bgColor) bgColor.onchange = applyStyles;
-    if (textColor) textColor.onchange = applyStyles;
-    if (fontFamily) fontFamily.onchange = applyStyles;
+    document.getElementById('bgColor')?.addEventListener('change', applyStyles);
+    document.getElementById('textColor')?.addEventListener('change', applyStyles);
+    document.getElementById('fontFamily')?.addEventListener('change', applyStyles);
+});
+
+// При закрытии страницы
+window.addEventListener('beforeunload', () => {
+    sendLeave();
 });
