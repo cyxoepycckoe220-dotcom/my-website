@@ -12,66 +12,235 @@
             box-sizing: border-box;
         }
 
-        body {
-            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-            background: #0f0f0f;
-            min-height: 100vh;
+        :root {
+            --bg-primary: #0f0f0f;
+            --bg-secondary: #1a1a1a;
+            --bg-tertiary: #2a2a2a;
+            --border-color: #2a2a2a;
+            --accent-color: #667eea;
+            --accent-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --text-primary: #ffffff;
+            --text-secondary: #888888;
+            --success-color: #28a745;
+            --danger-color: #ff4757;
         }
 
+        body.dark {
+            --bg-primary: #0f0f0f;
+            --bg-secondary: #1a1a1a;
+            --bg-tertiary: #2a2a2a;
+            --border-color: #2a2a2a;
+            --text-primary: #ffffff;
+            --text-secondary: #888888;
+        }
+
+        body.light {
+            --bg-primary: #f0f2f5;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f5f5f5;
+            --border-color: #e0e0e0;
+            --text-primary: #1a1a1a;
+            --text-secondary: #666666;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+
+        /* Анимация логотипа */
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+
+        @keyframes logoGlow {
+            0%, 100% { text-shadow: 0 0 5px rgba(102,126,234,0.5); }
+            50% { text-shadow: 0 0 20px rgba(102,126,234,0.8); }
+        }
+
+        /* Контейнер чата */
         .chat-container {
             display: flex;
             height: 100vh;
-            background: #0f0f0f;
+            background: var(--bg-primary);
         }
 
+        /* Боковая панель */
         .users-panel {
-            width: 300px;
-            background: #1a1a1a;
-            border-right: 1px solid #2a2a2a;
+            width: 320px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
+            transition: all 0.3s ease;
         }
 
-        .user-info {
+        /* Шапка с логотипом и профилем */
+        .panel-header {
             padding: 20px;
-            border-bottom: 1px solid #2a2a2a;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-area {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
+            cursor: pointer;
+            animation: logoFloat 3s ease infinite;
         }
 
-        .user-avatar {
-            width: 48px;
-            height: 48px;
+        .logo-icon {
+            font-size: 32px;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: logoGlow 2s ease infinite;
+        }
+
+        .logo-text {
+            font-size: 20px;
+            font-weight: bold;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .profile-area {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .profile-avatar {
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--accent-gradient);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 22px;
             font-weight: bold;
             color: white;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
 
-        .user-details h3 {
+        .profile-avatar:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(102,126,234,0.5);
+        }
+
+        /* Выпадающее меню профиля */
+        .profile-menu {
+            position: absolute;
+            top: 55px;
+            right: 0;
+            width: 280px;
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            z-index: 100;
+            display: none;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .profile-menu.show {
+            display: block;
+            animation: menuAppear 0.2s ease;
+        }
+
+        @keyframes menuAppear {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .profile-menu-header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--accent-gradient);
+        }
+
+        .profile-menu-avatar {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            margin: 0 auto 10px;
+        }
+
+        .profile-menu-name {
             color: white;
-            font-size: 16px;
+            font-size: 18px;
+            font-weight: bold;
         }
 
-        .user-details p {
-            color: #888;
+        .profile-menu-status {
+            color: rgba(255,255,255,0.8);
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .profile-menu-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+            color: var(--text-primary);
+        }
+
+        .profile-menu-item:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .profile-menu-item .icon {
+            font-size: 18px;
+            width: 24px;
+        }
+
+        .theme-switch {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .theme-option {
+            padding: 6px 12px;
+            border-radius: 20px;
+            background: var(--bg-tertiary);
+            cursor: pointer;
             font-size: 12px;
         }
 
-        .online-status {
-            color: #28a745;
-            font-size: 10px;
-            margin-top: 4px;
+        .theme-option.active {
+            background: var(--accent-color);
+            color: white;
         }
 
         .panel-tabs {
             display: flex;
-            border-bottom: 1px solid #2a2a2a;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .panel-tab {
@@ -80,15 +249,15 @@
             text-align: center;
             background: none;
             border: none;
-            color: #888;
+            color: var(--text-secondary);
             cursor: pointer;
             font-weight: bold;
             transition: all 0.2s;
         }
 
         .panel-tab.active {
-            color: #667eea;
-            border-bottom: 2px solid #667eea;
+            color: var(--accent-color);
+            border-bottom: 2px solid var(--accent-color);
         }
 
         .panel-tab.disabled {
@@ -123,16 +292,17 @@
         }
 
         .coming-soon h3 {
-            color: white;
+            color: var(--text-primary);
             font-size: 24px;
             margin-bottom: 10px;
         }
 
         .coming-soon p {
-            color: #888;
+            color: var(--text-secondary);
             font-size: 14px;
         }
 
+        /* Диалоги */
         .dialog-item {
             padding: 12px 20px;
             display: flex;
@@ -140,23 +310,23 @@
             gap: 12px;
             cursor: pointer;
             transition: background 0.2s;
-            border-bottom: 1px solid #2a2a2a;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .dialog-item:hover {
-            background: #2a2a2a;
+            background: var(--bg-tertiary);
         }
 
         .dialog-item.active {
-            background: #2a2a2a;
-            border-left: 3px solid #667eea;
+            background: var(--bg-tertiary);
+            border-left: 3px solid var(--accent-color);
         }
 
         .dialog-avatar {
             width: 44px;
             height: 44px;
             border-radius: 50%;
-            background: #2a2a2a;
+            background: var(--bg-tertiary);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -170,19 +340,19 @@
         }
 
         .dialog-name {
-            color: white;
+            color: var(--text-primary);
             font-weight: bold;
             font-size: 15px;
         }
 
         .dialog-type {
             font-size: 10px;
-            color: #888;
+            color: var(--text-secondary);
             margin-top: 2px;
         }
 
         .dialog-last-message {
-            color: #888;
+            color: var(--text-secondary);
             font-size: 12px;
             margin-top: 4px;
             white-space: nowrap;
@@ -191,32 +361,34 @@
             max-width: 150px;
         }
 
+        /* Основная область чата */
         .chat-main {
             flex: 1;
             display: flex;
             flex-direction: column;
-            background: #0f0f0f;
+            background: var(--bg-primary);
         }
 
         .chat-header {
             padding: 20px;
-            border-bottom: 1px solid #2a2a2a;
+            border-bottom: 1px solid var(--border-color);
             display: flex;
             align-items: center;
             gap: 12px;
-            background: #1a1a1a;
+            background: var(--bg-secondary);
         }
 
         .chat-header-avatar {
-            width: 40px;
-            height: 40px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--accent-gradient);
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
             font-weight: bold;
+            font-size: 24px;
         }
 
         .chat-header-info {
@@ -224,16 +396,15 @@
         }
 
         .chat-header-info h3 {
-            color: white;
+            color: var(--text-primary);
             font-size: 16px;
         }
 
         .chat-header-info p {
-            color: #888;
+            color: var(--text-secondary);
             font-size: 12px;
         }
 
-        /* Кнопка вызова */
         .call-btn {
             background: linear-gradient(135deg, #28a745, #20c997);
             border: none;
@@ -245,39 +416,14 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            transition: transform 0.2s, background 0.2s;
+            transition: transform 0.2s;
         }
 
         .call-btn:active {
             transform: scale(0.95);
         }
 
-        .call-btn:hover {
-            background: linear-gradient(135deg, #20c997, #28a745);
-        }
-
-        /* Сообщение-приглашение */
-        .invite-message {
-            background: linear-gradient(135deg, #28a745, #20c997) !important;
-            text-align: center;
-            font-weight: bold;
-        }
-
-        .invite-message .message-sender {
-            color: rgba(255,255,255,0.9);
-        }
-
-        /* Анимация для приглашения */
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.02); }
-            100% { transform: scale(1); }
-        }
-
-        .invite-message {
-            animation: pulse 0.5s ease;
-        }
-
+        /* Сообщения */
         .messages-area {
             flex: 1;
             overflow-y: auto;
@@ -311,7 +457,7 @@
         }
 
         .message.my-message {
-            background: #667eea;
+            background: var(--accent-color);
             color: white;
             align-self: flex-end;
             border-bottom-right-radius: 4px;
@@ -333,10 +479,16 @@
         }
 
         .message.other-message {
-            background: #2a2a2a;
-            color: white;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
             align-self: flex-start;
             border-bottom-left-radius: 4px;
+        }
+
+        .invite-message {
+            background: linear-gradient(135deg, #28a745, #20c997) !important;
+            text-align: center;
+            font-weight: bold;
         }
 
         .message-sender {
@@ -355,10 +507,10 @@
 
         .message-input-area {
             padding: 20px;
-            border-top: 1px solid #2a2a2a;
+            border-top: 1px solid var(--border-color);
             display: flex;
             gap: 12px;
-            background: #1a1a1a;
+            background: var(--bg-secondary);
         }
 
         .message-input-area input {
@@ -366,21 +518,21 @@
             padding: 12px 18px;
             border-radius: 30px;
             border: none;
-            background: #2a2a2a;
-            color: white;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
             font-size: 14px;
             outline: none;
         }
 
         .message-input-area input::placeholder {
-            color: #888;
+            color: var(--text-secondary);
         }
 
         .message-input-area button {
             padding: 12px 24px;
             border-radius: 30px;
             border: none;
-            background: #667eea;
+            background: var(--accent-color);
             color: white;
             cursor: pointer;
             font-weight: bold;
@@ -417,6 +569,7 @@
             opacity: 1;
         }
 
+        /* Регистрация */
         .register-overlay {
             position: fixed;
             top: 0;
@@ -431,21 +584,33 @@
         }
 
         .register-box {
-            background: #1a1a1a;
+            background: var(--bg-secondary);
             padding: 40px;
             border-radius: 30px;
             width: 90%;
             max-width: 400px;
             text-align: center;
+            animation: fadeInUp 0.4s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .register-box h2 {
-            color: white;
+            color: var(--text-primary);
             margin-bottom: 10px;
         }
 
         .register-box p {
-            color: #888;
+            color: var(--text-secondary);
             margin-bottom: 30px;
         }
 
@@ -454,8 +619,8 @@
             padding: 15px;
             border-radius: 30px;
             border: none;
-            background: #2a2a2a;
-            color: white;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
             font-size: 16px;
             margin-bottom: 20px;
             text-align: center;
@@ -466,17 +631,18 @@
             padding: 15px;
             border-radius: 30px;
             border: none;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--accent-gradient);
             color: white;
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
         }
 
+        /* Адаптив */
         @media (max-width: 768px) {
             .users-panel {
                 position: fixed;
-                left: -300px;
+                left: -320px;
                 top: 0;
                 height: 100%;
                 z-index: 200;
@@ -491,7 +657,7 @@
                 top: 20px;
                 left: 20px;
                 z-index: 300;
-                background: #667eea;
+                background: var(--accent-color);
                 border: none;
                 color: white;
                 font-size: 24px;
@@ -509,6 +675,10 @@
                 font-size: 24px;
                 padding: 8px 12px;
             }
+            .profile-menu {
+                width: 260px;
+                right: -10px;
+            }
         }
 
         @media (min-width: 769px) {
@@ -521,18 +691,22 @@
             width: 6px;
         }
         ::-webkit-scrollbar-track {
-            background: #1a1a1a;
+            background: var(--bg-tertiary);
         }
         ::-webkit-scrollbar-thumb {
-            background: #667eea;
+            background: var(--accent-color);
             border-radius: 10px;
         }
     </style>
 </head>
-<body>
+<body class="dark">
     <div id="registerOverlay" class="register-overlay">
         <div class="register-box">
-            <h2>✨ MiniGram</h2>
+            <div class="logo-area" style="justify-content: center; margin-bottom: 20px;">
+                <span class="logo-icon">✨</span>
+                <span class="logo-text">MiniGram</span>
+            </div>
+            <h2>Добро пожаловать!</h2>
             <p>Твой личный мессенджер</p>
             <input type="text" id="nicknameInput" placeholder="Придумай никнейм" maxlength="20">
             <button id="registerBtn">🚀 Начать общение</button>
@@ -544,11 +718,32 @@
         <button class="menu-btn" id="menuBtn">☰</button>
 
         <div class="users-panel" id="usersPanel">
-            <div class="user-info">
-                <div class="user-avatar" id="myAvatar">😀</div>
-                <div class="user-details">
-                    <h3 id="myNickname">Загрузка...</h3>
-                    <div class="online-status">🟢 Онлайн</div>
+            <div class="panel-header">
+                <div class="logo-area">
+                    <span class="logo-icon">✨</span>
+                    <span class="logo-text">MiniGram</span>
+                </div>
+                <div class="profile-area" id="profileArea">
+                    <div class="profile-avatar" id="profileAvatar">😀</div>
+                    <div class="profile-menu" id="profileMenu">
+                        <div class="profile-menu-header">
+                            <div class="profile-menu-avatar" id="menuAvatar">😀</div>
+                            <div class="profile-menu-name" id="menuName">Username</div>
+                            <div class="profile-menu-status">🟢 Онлайн</div>
+                        </div>
+                        <div class="profile-menu-item theme-switch">
+                            <span class="icon">🎨</span>
+                            <span>Тема</span>
+                            <div style="display: flex; gap: 8px;">
+                                <span class="theme-option" data-theme="dark">🌙 Тёмная</span>
+                                <span class="theme-option" data-theme="light">☀️ Светлая</span>
+                            </div>
+                        </div>
+                        <div class="profile-menu-item" id="logoutMenuItem">
+                            <span class="icon">🚪</span>
+                            <span>Выйти</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -560,7 +755,7 @@
 
             <div id="chatsPanel" class="panel-content">
                 <div class="dialogs-list" id="dialogsList">
-                    <div style="padding: 20px; color: #888; text-align: center;">Загрузка...</div>
+                    <div style="padding: 20px; color: var(--text-secondary); text-align: center;">Загрузка...</div>
                 </div>
             </div>
 
@@ -592,7 +787,7 @@
             </div>
 
             <div class="messages-area" id="messagesArea">
-                <div style="text-align: center; color: #888; padding: 40px;">
+                <div style="text-align: center; color: var(--text-secondary); padding: 40px;">
                     👈 Выберите чат из списка
                 </div>
             </div>
@@ -604,7 +799,6 @@
         </div>
     </div>
 
-    <!-- Всплывающее уведомление -->
     <div id="toastNotification" class="toast-notification">
         <span>🔔</span>
         <span id="toastMessage"></span>
@@ -614,7 +808,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     
     <script>
-        // ========== FIREBASE КЛЮЧИ (ВСТАВЬ СВОИ) ==========
+        // ========== FIREBASE КЛЮЧИ ==========
         const firebaseConfig = {
   apiKey: "AIzaSyCKod1JVM2fp6kbCHfYdbAFJgTOHg8Kzfk",
   authDomain: "sitemaker-c4226.firebaseapp.com",
@@ -631,6 +825,7 @@
         // ========== ПЕРЕМЕННЫЕ ==========
         let myId = null;
         let myNickname = null;
+        let myAvatar = '😀';
         let currentChatId = null;
         let currentChatType = null;
         let users = {};
@@ -642,18 +837,59 @@
             return avatars[Math.floor(Math.random() * avatars.length)];
         }
         
-        // Всплывающее уведомление
+        // ========== ТЕМА ==========
+        function initTheme() {
+            const savedTheme = localStorage.getItem('minigram_theme') || 'dark';
+            document.body.classList.remove('dark', 'light');
+            document.body.classList.add(savedTheme);
+            document.querySelectorAll('.theme-option').forEach(opt => {
+                opt.classList.toggle('active', opt.dataset.theme === savedTheme);
+            });
+        }
+        
+        function setTheme(theme) {
+            document.body.classList.remove('dark', 'light');
+            document.body.classList.add(theme);
+            localStorage.setItem('minigram_theme', theme);
+            document.querySelectorAll('.theme-option').forEach(opt => {
+                opt.classList.toggle('active', opt.dataset.theme === theme);
+            });
+        }
+        
+        // ========== ПРОФИЛЬ ==========
+        function toggleProfileMenu() {
+            const menu = document.getElementById('profileMenu');
+            menu.classList.toggle('show');
+        }
+        
+        function closeProfileMenu() {
+            const menu = document.getElementById('profileMenu');
+            menu.classList.remove('show');
+        }
+        
+        function logout() {
+            if (confirm('Выйти из аккаунта?')) {
+                localStorage.removeItem('minigram_user');
+                if (myId) database.ref('users/' + myId).update({ online: false });
+                location.reload();
+            }
+        }
+        
+        function updateProfileUI() {
+            document.getElementById('profileAvatar').textContent = myAvatar;
+            document.getElementById('menuAvatar').textContent = myAvatar;
+            document.getElementById('menuName').textContent = myNickname;
+        }
+        
+        // ========== УВЕДОМЛЕНИЯ ==========
         function showToast(message, isCall = false) {
             const toast = document.getElementById('toastNotification');
             const toastMessage = document.getElementById('toastMessage');
             toastMessage.innerHTML = message;
             toast.classList.add('show');
             
-            // Если это звонок, добавляем звуковой эффект
             if (isCall) {
-                // Простая вибрация (если поддерживается)
                 if (navigator.vibrate) navigator.vibrate(200);
-                // Меняем цвет на более яркий
                 toast.style.background = "linear-gradient(135deg, #ff4757, #ff6b6b)";
                 setTimeout(() => {
                     toast.style.background = "linear-gradient(135deg, #28a745, #20c997)";
@@ -677,22 +913,22 @@
             
             myId = Date.now() + '_' + Math.random().toString(36).substr(2, 6);
             myNickname = nickname;
+            myAvatar = getRandomAvatar();
             
             const userData = {
                 id: myId,
                 nickname: myNickname,
-                avatar: getRandomAvatar(),
+                avatar: myAvatar,
                 online: true,
                 lastSeen: Date.now()
             };
             
             database.ref('users/' + myId).set(userData);
-            localStorage.setItem('minigram_user', JSON.stringify({ id: myId, nickname: myNickname }));
+            localStorage.setItem('minigram_user', JSON.stringify({ id: myId, nickname: myNickname, avatar: myAvatar }));
             
             document.getElementById('registerOverlay').style.display = 'none';
             document.getElementById('chatContainer').style.display = 'flex';
-            document.getElementById('myNickname').textContent = myNickname;
-            document.getElementById('myAvatar').textContent = userData.avatar;
+            updateProfileUI();
             
             initApp();
         }
@@ -703,10 +939,11 @@
                 const user = JSON.parse(saved);
                 myId = user.id;
                 myNickname = user.nickname;
-                database.ref('users/' + myId).update({ online: true, lastSeen: Date.now() });
+                myAvatar = user.avatar || getRandomAvatar();
+                database.ref('users/' + myId).update({ online: true, lastSeen: Date.now(), avatar: myAvatar });
                 document.getElementById('registerOverlay').style.display = 'none';
                 document.getElementById('chatContainer').style.display = 'flex';
-                document.getElementById('myNickname').textContent = myNickname;
+                updateProfileUI();
                 initApp();
             }
         }
@@ -726,7 +963,7 @@
             const usersList = Object.values(users).filter(u => u.id !== myId);
             
             if (usersList.length === 0) {
-                container.innerHTML = '<div style="padding: 20px; color: #888; text-align: center;">👥 Нет других пользователей<br><small>Поделись ссылкой с друзьями!</small></div>';
+                container.innerHTML = '<div style="padding: 20px; color: var(--text-secondary); text-align: center;">👥 Нет других пользователей<br><small>Поделись ссылкой с друзьями!</small></div>';
                 return;
             }
             
@@ -796,8 +1033,6 @@
                 const existingMsg = document.querySelector(`[data-msg-id="${message.id}"]`);
                 if (!existingMsg) {
                     displayMessage(message);
-                    
-                    // Если это приглашение и оно не от меня — показываем уведомление
                     if (message.isInvite && message.senderId !== myId) {
                         showToast(`📞 ${message.senderNickname} зовёт вас в чат!`, true);
                     }
@@ -819,18 +1054,16 @@
             
             const messageDiv = document.createElement('div');
             let additionalClass = '';
-            let inviteText = '';
             
             if (message.isInvite) {
                 additionalClass = 'invite-message';
-                inviteText = ' 📞';
             }
             
             messageDiv.className = `message ${isMyMessage ? 'my-message' : 'other-message'} ${additionalClass}`;
             messageDiv.setAttribute('data-msg-id', message.id);
             messageDiv.innerHTML = `
                 ${!isMyMessage ? `<div class="message-sender">${escapeHtml(message.senderNickname)}</div>` : ''}
-                ${escapeHtml(message.text)}${inviteText}
+                ${escapeHtml(message.text)}
                 <div class="message-time">${timeStr}</div>
             `;
             container.appendChild(messageDiv);
@@ -860,7 +1093,6 @@
             }
         }
         
-        // ========== ОТПРАВКА ПРИГЛАШЕНИЯ ==========
         function sendInvite() {
             if (!currentChatId || !currentChatType) {
                 showToast('❌ Сначала выбери чат');
@@ -884,100 +1116,4 @@
                 chatRef.push(message);
                 showToast(`📞 Приглашение отправлено ${selectedUser.nickname}!`);
                 
-                // Добавляем эффект
                 const callBtn = document.getElementById('callBtn');
-                callBtn.style.transform = 'scale(0.95)';
-                setTimeout(() => {
-                    callBtn.style.transform = 'scale(1)';
-                }, 200);
-            }
-        }
-        
-        // ========== ПАНЕЛЬ ВКЛАДОК ==========
-        function initTabs() {
-            const tabs = document.querySelectorAll('.panel-tab');
-            const panels = {
-                chats: document.getElementById('chatsPanel'),
-                channels: document.getElementById('channelsPanel'),
-                groups: document.getElementById('groupsPanel')
-            };
-            
-            tabs.forEach(tab => {
-                tab.addEventListener('click', () => {
-                    if (tab.classList.contains('disabled')) {
-                        showToast('🔧 В разработке! Скоро появится');
-                        return;
-                    }
-                    
-                    tabs.forEach(t => t.classList.remove('active'));
-                    tab.classList.add('active');
-                    Object.values(panels).forEach(p => p.classList.add('hidden'));
-                    panels[tab.dataset.tab].classList.remove('hidden');
-                });
-            });
-        }
-        
-        // ========== ОНЛАЙН СТАТУС ==========
-        function updateOnlineStatus() {
-            setInterval(() => {
-                if (myId) database.ref('users/' + myId).update({ online: true, lastSeen: Date.now() });
-            }, 10000);
-            
-            window.addEventListener('beforeunload', () => {
-                if (myId) database.ref('users/' + myId).update({ online: false, lastSeen: Date.now() });
-            });
-        }
-        
-        function watchUserStatus() {
-            database.ref('users').on('value', () => {
-                renderDialogs();
-                if (currentChatId && users[currentChatId]) {
-                    document.getElementById('chatUserStatus').innerHTML = users[currentChatId].online ? '🟢 Онлайн' : '⚫ Офлайн';
-                }
-            });
-        }
-        
-        function escapeHtml(text) {
-            if (!text) return '';
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-        
-        function initMobileMenu() {
-            const menuBtn = document.getElementById('menuBtn');
-            const usersPanel = document.getElementById('usersPanel');
-            if (menuBtn) {
-                menuBtn.addEventListener('click', () => usersPanel.classList.toggle('open'));
-            }
-            document.addEventListener('click', (e) => {
-                if (window.innerWidth <= 768 && e.target.closest('.dialog-item')) {
-                    usersPanel.classList.remove('open');
-                }
-            });
-        }
-        
-        function initApp() {
-            loadUsers();
-            updateOnlineStatus();
-            watchUserStatus();
-            initTabs();
-            initMobileMenu();
-            
-            document.getElementById('sendBtn').addEventListener('click', sendMessage);
-            document.getElementById('messageInput').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') sendMessage();
-            });
-            
-            document.getElementById('callBtn').addEventListener('click', sendInvite);
-        }
-        
-        document.getElementById('registerBtn').addEventListener('click', register);
-        document.getElementById('nicknameInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') register();
-        });
-        
-        checkExistingUser();
-    </script>
-</body>
-</html>
