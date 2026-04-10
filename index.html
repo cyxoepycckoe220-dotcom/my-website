@@ -17,14 +17,12 @@
             min-height: 100vh;
         }
 
-        /* Контейнер чата */
         .chat-container {
             display: flex;
             height: 100vh;
             background: #0f0f0f;
         }
 
-        /* Боковая панель */
         .users-panel {
             width: 300px;
             background: #1a1a1a;
@@ -70,7 +68,6 @@
             margin-top: 4px;
         }
 
-        /* Вкладки в панели */
         .panel-tabs {
             display: flex;
             border-bottom: 1px solid #2a2a2a;
@@ -102,7 +99,6 @@
             display: none;
         }
 
-        /* Список диалогов */
         .dialog-item {
             padding: 12px 20px;
             display: flex;
@@ -159,22 +155,6 @@
             margin-top: 2px;
         }
 
-        .dialog-last-message {
-            color: #888;
-            font-size: 12px;
-            margin-top: 4px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 150px;
-        }
-
-        .dialog-time {
-            color: #666;
-            font-size: 10px;
-        }
-
-        /* Кнопка создания */
         .create-btn {
             margin: 15px;
             padding: 12px;
@@ -190,7 +170,6 @@
             gap: 8px;
         }
 
-        /* Основная область чата */
         .chat-main {
             flex: 1;
             display: flex;
@@ -235,7 +214,6 @@
             margin-top: 2px;
         }
 
-        /* Сообщения */
         .messages-area {
             flex: 1;
             overflow-y: auto;
@@ -293,7 +271,6 @@
             text-align: right;
         }
 
-        /* Ввод сообщения */
         .message-input-area {
             padding: 20px;
             border-top: 1px solid #2a2a2a;
@@ -333,7 +310,6 @@
             cursor: not-allowed;
         }
 
-        /* Модальное окно создания */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -364,7 +340,7 @@
             margin-bottom: 20px;
         }
 
-        .modal-box input, .modal-box select {
+        .modal-box input {
             width: 100%;
             padding: 12px;
             border-radius: 30px;
@@ -399,7 +375,6 @@
             background: #ff4757;
         }
 
-        /* Регистрация */
         .register-overlay {
             position: fixed;
             top: 0;
@@ -456,7 +431,6 @@
             cursor: pointer;
         }
 
-        /* Адаптив */
         @media (max-width: 768px) {
             .users-panel {
                 position: fixed;
@@ -466,11 +440,9 @@
                 z-index: 200;
                 transition: left 0.3s;
             }
-
             .users-panel.open {
                 left: 0;
             }
-
             .menu-btn {
                 display: block;
                 position: fixed;
@@ -496,11 +468,9 @@
         ::-webkit-scrollbar {
             width: 6px;
         }
-
         ::-webkit-scrollbar-track {
             background: #1a1a1a;
         }
-
         ::-webkit-scrollbar-thumb {
             background: #667eea;
             border-radius: 10px;
@@ -580,7 +550,6 @@
         </div>
     </div>
 
-    <!-- Модальное окно создания канала/группы -->
     <div id="createModal" class="modal-overlay hidden">
         <div class="modal-box">
             <h3 id="modalTitle">Создать канал</h3>
@@ -597,7 +566,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     
     <script>
-        // ========== FIREBASE КЛЮЧИ ==========
+        // ========== FIREBASE КЛЮЧИ (ВСТАВЬ СВОИ) ==========
         const firebaseConfig = {
   apiKey: "AIzaSyCKod1JVM2fp6kbCHfYdbAFJgTOHg8Kzfk",
   authDomain: "sitemaker-c4226.firebaseapp.com",
@@ -613,11 +582,12 @@
         // ========== ПЕРЕМЕННЫЕ ==========
         let myId = null;
         let myNickname = null;
-        let currentChat = null;
+        let currentChatId = null;
         let currentChatType = null;
         let users = {};
         let channels = {};
         let groups = {};
+        let currentMessagesRef = null;
         
         const avatars = ['😀', '😎', '🥳', '😺', '🦊', '🐼', '🌟', '🎮', '⚽', '🎵', '📚', '🎨'];
         
@@ -706,7 +676,7 @@
             }
             
             container.innerHTML = usersList.map(user => `
-                <div class="dialog-item ${currentChat === user.id && currentChatType === 'user' ? 'active' : ''}" onclick="selectChat('${user.id}', 'user')">
+                <div class="dialog-item ${currentChatId === user.id && currentChatType === 'user' ? 'active' : ''}" onclick="selectChat('${user.id}', 'user')">
                     <div class="dialog-avatar">${user.avatar || '😀'}</div>
                     <div class="dialog-info">
                         <div class="dialog-name">${escapeHtml(user.nickname)}</div>
@@ -729,7 +699,7 @@
             }
             
             container.innerHTML = channelsList.map(channel => `
-                <div class="dialog-item ${currentChat === channel.id && currentChatType === 'channel' ? 'active' : ''}" onclick="selectChat('${channel.id}', 'channel')">
+                <div class="dialog-item ${currentChatId === channel.id && currentChatType === 'channel' ? 'active' : ''}" onclick="selectChat('${channel.id}', 'channel')">
                     <div class="dialog-avatar channel">📢</div>
                     <div class="dialog-info">
                         <div class="dialog-name">${escapeHtml(channel.name)}</div>
@@ -752,7 +722,7 @@
             }
             
             container.innerHTML = groupsList.map(group => `
-                <div class="dialog-item ${currentChat === group.id && currentChatType === 'group' ? 'active' : ''}" onclick="selectChat('${group.id}', 'group')">
+                <div class="dialog-item ${currentChatId === group.id && currentChatType === 'group' ? 'active' : ''}" onclick="selectChat('${group.id}', 'group')">
                     <div class="dialog-avatar group">👥</div>
                     <div class="dialog-info">
                         <div class="dialog-name">${escapeHtml(group.name)}</div>
@@ -765,9 +735,15 @@
         
         // ========== ВЫБОР ЧАТА ==========
         window.selectChat = function(id, type) {
-            currentChat = id;
+            // Отписываемся от старых сообщений
+            if (currentMessagesRef) {
+                currentMessagesRef.off();
+            }
+            
+            currentChatId = id;
             currentChatType = type;
             
+            // Обновляем активные элементы в списках
             renderDialogs();
             renderChannels();
             renderGroups();
@@ -801,6 +777,10 @@
             document.getElementById('chatUserStatus').textContent = status;
             document.getElementById('memberCount').textContent = memberCount;
             
+            // Очищаем область сообщений
+            const messagesArea = document.getElementById('messagesArea');
+            messagesArea.innerHTML = '';
+            
             // В каналах нельзя писать обычным пользователям
             const isChannel = type === 'channel';
             const isChannelAdmin = isChannel && channels[id] && channels[id].creator === myId;
@@ -809,24 +789,25 @@
             const messageInput = document.getElementById('messageInput');
             const sendBtn = document.getElementById('sendBtn');
             
-            if (messageInput) messageInput.disabled = !canWrite;
+            if (messageInput) {
+                messageInput.disabled = !canWrite;
+                messageInput.placeholder = canWrite ? 'Напиши сообщение...' : '🔒 В этом канале только администратор может писать';
+            }
             if (sendBtn) sendBtn.disabled = !canWrite;
             
-            if (!canWrite) {
-                messageInput.placeholder = '🔒 В этом канале только администратор может писать';
-            } else {
-                messageInput.placeholder = 'Напиши сообщение...';
-            }
-            
+            // Загружаем сообщения
             loadMessages();
         };
         
         // ========== СООБЩЕНИЯ ==========
         function getChatRef() {
-            if (!currentChat || !currentChatType) return null;
-            if (currentChatType === 'user') return database.ref('messages/users/' + [myId, currentChat].sort().join('_'));
-            if (currentChatType === 'channel') return database.ref('messages/channels/' + currentChat);
-            if (currentChatType === 'group') return database.ref('messages/groups/' + currentChat);
+            if (!currentChatId || !currentChatType) return null;
+            if (currentChatType === 'user') {
+                const chatId = [myId, currentChatId].sort().join('_');
+                return database.ref('messages/users/' + chatId);
+            }
+            if (currentChatType === 'channel') return database.ref('messages/channels/' + currentChatId);
+            if (currentChatType === 'group') return database.ref('messages/groups/' + currentChatId);
             return null;
         }
         
@@ -834,10 +815,27 @@
             const chatRef = getChatRef();
             if (!chatRef) return;
             
-            chatRef.off();
-            chatRef.limitToLast(100).on('child_added', (snapshot) => {
+            currentMessagesRef = chatRef;
+            
+            // Загружаем последние 50 сообщений
+            chatRef.limitToLast(50).once('value', (snapshot) => {
+                const messages = snapshot.val();
+                if (messages) {
+                    const messagesArray = Object.values(messages);
+                    messagesArray.forEach(message => {
+                        displayMessage(message);
+                    });
+                }
+            });
+            
+            // Слушаем новые сообщения
+            chatRef.on('child_added', (snapshot) => {
                 const message = snapshot.val();
-                displayMessage(message);
+                // Проверяем, не добавлено ли уже это сообщение
+                const existingMsg = document.querySelector(`[data-msg-id="${message.id}"]`);
+                if (!existingMsg) {
+                    displayMessage(message);
+                }
             });
         }
         
@@ -849,12 +847,9 @@
             const date = new Date(message.timestamp);
             const timeStr = `${date.getHours().toString().padStart(2,'0')}:${date.getMinutes().toString().padStart(2,'0')}`;
             
-            if (container.children.length === 1 && container.children[0].innerText.includes('Выберите чат')) {
-                container.innerHTML = '';
-            }
-            
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${isMyMessage ? 'my-message' : 'other-message'}`;
+            messageDiv.setAttribute('data-msg-id', message.id);
             messageDiv.innerHTML = `
                 ${!isMyMessage ? `<div class="message-sender">${escapeHtml(message.senderNickname)}</div>` : ''}
                 ${escapeHtml(message.text)}
@@ -867,11 +862,11 @@
         function sendMessage() {
             const input = document.getElementById('messageInput');
             const text = input.value.trim();
-            if (!text || !currentChat || !currentChatType) return;
+            if (!text || !currentChatId || !currentChatType) return;
             
             // Проверка прав в канале
             if (currentChatType === 'channel') {
-                const channel = channels[currentChat];
+                const channel = channels[currentChatId];
                 if (channel && channel.creator !== myId) {
                     alert('🔒 Только администратор может писать в канале');
                     return;
@@ -973,7 +968,9 @@
         function initMobileMenu() {
             const menuBtn = document.getElementById('menuBtn');
             const usersPanel = document.getElementById('usersPanel');
-            if (menuBtn) menuBtn.addEventListener('click', () => usersPanel.classList.toggle('open'));
+            if (menuBtn) {
+                menuBtn.addEventListener('click', () => usersPanel.classList.toggle('open'));
+            }
             document.addEventListener('click', (e) => {
                 if (window.innerWidth <= 768 && e.target.closest('.dialog-item')) {
                     usersPanel.classList.remove('open');
