@@ -1,89 +1,84 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Новости — тест</title>
-    <style>
-        body { font-family: system-ui; padding: 20px; background: #f0f2f5; }
-        .news-card { background: white; border-radius: 16px; padding: 15px; margin-bottom: 15px; }
-        .admin-panel { background: white; padding: 20px; border-radius: 16px; margin-top: 20px; border: 2px solid blue; }
-        .hidden { display: none; }
-        input, textarea { width: 100%; padding: 8px; margin: 5px 0; }
-        button { background: blue; color: white; border: none; padding: 10px; border-radius: 20px; cursor: pointer; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SiteMaker — создай свой сайт онлайн</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>📰 Новости</h1>
-    <div id="newsList"></div>
-    
-    <div id="adminPanel" class="admin-panel hidden">
-        <h2>🔐 Админка</h2>
-        <input type="text" id="title" placeholder="Заголовок">
-        <textarea id="preview" placeholder="Кратко"></textarea>
-        <textarea id="full" placeholder="Подробно"></textarea>
-        <button id="addBtn">➕ Добавить</button>
-        <button id="logoutBtn" style="background:red; margin-top:10px;">🚪 Выйти</button>
+    <div class="toolbar">
+        <div class="logo">✨ SiteMaker</div>
+        <div class="toolbar-buttons">
+            <button id="editorBtn" class="editor-btn">✏️ Редактор</button>
+            <button id="exitEditorBtn" class="exit-btn" style="display:none;">🔒 Выйти из редактора</button>
+            <button id="onlineCount" class="online-btn">👥 0 онлайн</button>
+        </div>
     </div>
 
-    <script>
-        let news = JSON.parse(localStorage.getItem('news') || '[]');
-        
-        function save() {
-            localStorage.setItem('news', JSON.stringify(news));
-            render();
-        }
-        
-        function render() {
-            const container = document.getElementById('newsList');
-            if (news.length === 0) {
-                container.innerHTML = '<p>Новостей пока нет</p>';
-                return;
-            }
-            container.innerHTML = news.map(n => `
-                <div class="news-card">
-                    <h3>${n.title}</h3>
-                    <p>${n.preview}</p>
-                    <details><summary>Читать далее</summary><p>${n.full}</p></details>
-                    <small>${new Date(n.date).toLocaleString()}</small>
-                </div>
-            `).join('');
-        }
-        
-        function addNews() {
-            const title = document.getElementById('title').value;
-            const preview = document.getElementById('preview').value;
-            const full = document.getElementById('full').value;
-            if (!title || !preview || !full) return alert('Заполни всё!');
-            news.unshift({title, preview, full, date: new Date().toISOString()});
-            save();
-            document.getElementById('title').value = '';
-            document.getElementById('preview').value = '';
-            document.getElementById('full').value = '';
-            alert('✅ Добавлено!');
-        }
-        
-        // Вход в админку (тройной тап)
-        let tap = 0;
-        document.querySelector('h1').addEventListener('click', () => {
-            tap++;
-            setTimeout(() => tap = 0, 500);
-            if (tap === 3) {
-                const pwd = prompt('Секретный код:');
-                if (pwd === 'admin123') {
-                    document.getElementById('adminPanel').classList.remove('hidden');
-                } else {
-                    alert('Неверно');
-                }
-                tap = 0;
-            }
-        });
-        
-        document.getElementById('addBtn').onclick = addNews;
-        document.getElementById('logoutBtn').onclick = () => {
-            document.getElementById('adminPanel').classList.add('hidden');
-        };
-        
-        render();
-    </script>
+    <!-- Сама страница (то, что видят все) -->
+    <div id="pageContent" class="page-content">
+        <div class="welcome-message">
+            <h1>✨ Добро пожаловать в SiteMaker!</h1>
+            <p>Нажми на кнопку "Редактор", чтобы начать создавать свой сайт</p>
+            <p>Все изменения видны всем онлайн!</p>
+        </div>
+    </div>
+
+    <!-- Панель редактора (появляется при клике) -->
+    <div id="editorPanel" class="editor-panel hidden">
+        <div class="editor-header">
+            <h3>🎨 Редактор сайта</h3>
+            <button id="closeEditorBtn" class="close-editor">✖️</button>
+        </div>
+        <div class="editor-tools">
+            <div class="tool-group">
+                <h4>➕ Добавить блок</h4>
+                <button id="addTextBtn" class="tool-btn">📝 Текст</button>
+                <button id="addTitleBtn" class="tool-btn">📌 Заголовок</button>
+                <button id="addButtonBtn" class="tool-btn">🔘 Кнопка</button>
+                <button id="addImageBtn" class="tool-btn">🖼️ Картинка</button>
+                <button id="addHtmlBtn" class="tool-btn">💻 HTML код</button>
+            </div>
+            <div class="tool-group">
+                <h4>🎨 Стили</h4>
+                <label>Цвет фона:</label>
+                <input type="color" id="bgColor" value="#ffffff">
+                <label>Цвет текста:</label>
+                <input type="color" id="textColor" value="#000000">
+                <label>Шрифт:</label>
+                <select id="fontFamily">
+                    <option value="Arial">Arial</option>
+                    <option value="Georgia">Georgia</option>
+                    <option value="Courier New">Courier New</option>
+                    <option value="system-ui">Системный</option>
+                </select>
+            </div>
+            <div class="tool-group">
+                <h4>⚡ Управление</h4>
+                <button id="clearSiteBtn" class="tool-btn danger">🗑️ Очистить сайт</button>
+                <button id="saveSiteBtn" class="tool-btn success">💾 Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модалка для ввода текста/ссылки -->
+    <div id="inputModal" class="modal hidden">
+        <div class="modal-content small">
+            <h3 id="modalTitle">Введите текст</h3>
+            <input type="text" id="modalInput" placeholder="Текст...">
+            <input type="text" id="modalInput2" placeholder="Ссылка (для кнопки)" style="display:none;">
+            <div class="modal-buttons">
+                <button id="modalOkBtn">OK</button>
+                <button id="modalCancelBtn">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Индикатор мышки -->
+    <div id="mouseCursor" class="custom-cursor"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
