@@ -1,58 +1,89 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Новостной портал</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Новости — тест</title>
+    <style>
+        body { font-family: system-ui; padding: 20px; background: #f0f2f5; }
+        .news-card { background: white; border-radius: 16px; padding: 15px; margin-bottom: 15px; }
+        .admin-panel { background: white; padding: 20px; border-radius: 16px; margin-top: 20px; border: 2px solid blue; }
+        .hidden { display: none; }
+        input, textarea { width: 100%; padding: 8px; margin: 5px 0; }
+        button { background: blue; color: white; border: none; padding: 10px; border-radius: 20px; cursor: pointer; }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>📰 Новостной портал</h1>
-            <p>Актуальные новости каждый день</p>
-        </div>
-
-        <!-- Сетка с новостями (видна всем) -->
-        <div id="newsGrid" class="news-grid">
-            <div class="empty-state">
-                📭 Новостей пока нет
-            </div>
-        </div>
-
-        <!-- Скрытая админ-панель (появляется только после входа) -->
-        <div id="adminPanel" class="admin-panel hidden">
-            <div class="admin-header">
-                <h2>🔐 Админ-панель</h2>
-                <button id="logoutBtn" class="logout-btn">🚪 Выйти</button>
-            </div>
-            
-            <div class="form-group">
-                <label>📌 Заголовок</label>
-                <input type="text" id="titleInput" placeholder="Заголовок новости">
-            </div>
-            <div class="form-group">
-                <label>📝 Краткое описание</label>
-                <textarea id="previewInput" placeholder="Коротко о главном..."></textarea>
-            </div>
-            <div class="form-group">
-                <label>📖 Полное описание</label>
-                <textarea id="fullInput" placeholder="Подробности..."></textarea>
-            </div>
-            <button id="addNewsBtn" class="btn-add">➕ Добавить новость</button>
-        </div>
+    <h1>📰 Новости</h1>
+    <div id="newsList"></div>
+    
+    <div id="adminPanel" class="admin-panel hidden">
+        <h2>🔐 Админка</h2>
+        <input type="text" id="title" placeholder="Заголовок">
+        <textarea id="preview" placeholder="Кратко"></textarea>
+        <textarea id="full" placeholder="Подробно"></textarea>
+        <button id="addBtn">➕ Добавить</button>
+        <button id="logoutBtn" style="background:red; margin-top:10px;">🚪 Выйти</button>
     </div>
 
-    <!-- Скрытая форма входа в админку (всплывает по команде) -->
-    <div id="loginOverlay" class="login-overlay hidden">
-        <div class="login-box">
-            <h3>🔐 Вход в админ-панель</h3>
-            <input type="password" id="adminPassword" placeholder="Введите секретный код" autocomplete="off">
-            <button id="loginBtn">Войти</button>
-            <p class="login-hint">Подсказка: секретный код — <strong>admin123</strong></p>
-        </div>
-    </div>
-
-    <script src="script.js"></script>
+    <script>
+        let news = JSON.parse(localStorage.getItem('news') || '[]');
+        
+        function save() {
+            localStorage.setItem('news', JSON.stringify(news));
+            render();
+        }
+        
+        function render() {
+            const container = document.getElementById('newsList');
+            if (news.length === 0) {
+                container.innerHTML = '<p>Новостей пока нет</p>';
+                return;
+            }
+            container.innerHTML = news.map(n => `
+                <div class="news-card">
+                    <h3>${n.title}</h3>
+                    <p>${n.preview}</p>
+                    <details><summary>Читать далее</summary><p>${n.full}</p></details>
+                    <small>${new Date(n.date).toLocaleString()}</small>
+                </div>
+            `).join('');
+        }
+        
+        function addNews() {
+            const title = document.getElementById('title').value;
+            const preview = document.getElementById('preview').value;
+            const full = document.getElementById('full').value;
+            if (!title || !preview || !full) return alert('Заполни всё!');
+            news.unshift({title, preview, full, date: new Date().toISOString()});
+            save();
+            document.getElementById('title').value = '';
+            document.getElementById('preview').value = '';
+            document.getElementById('full').value = '';
+            alert('✅ Добавлено!');
+        }
+        
+        // Вход в админку (тройной тап)
+        let tap = 0;
+        document.querySelector('h1').addEventListener('click', () => {
+            tap++;
+            setTimeout(() => tap = 0, 500);
+            if (tap === 3) {
+                const pwd = prompt('Секретный код:');
+                if (pwd === 'admin123') {
+                    document.getElementById('adminPanel').classList.remove('hidden');
+                } else {
+                    alert('Неверно');
+                }
+                tap = 0;
+            }
+        });
+        
+        document.getElementById('addBtn').onclick = addNews;
+        document.getElementById('logoutBtn').onclick = () => {
+            document.getElementById('adminPanel').classList.add('hidden');
+        };
+        
+        render();
+    </script>
 </body>
 </html>
