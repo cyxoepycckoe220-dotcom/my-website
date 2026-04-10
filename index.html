@@ -4,7 +4,7 @@
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23667eea'/%3E%3Ctext x='50' y='68' font-size='50' text-anchor='middle' fill='white' font-family='Arial'%3E📢%3C/text%3E%3C/svg%3E">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>MiniGram — мессенджер с каналами и группами</title>
+    <title>MiniGram — твой мессенджер</title>
     <style>
         * {
             margin: 0;
@@ -91,6 +91,11 @@
             border-bottom: 2px solid #667eea;
         }
 
+        .panel-tab.disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
         .panel-content {
             flex: 1;
             overflow-y: auto;
@@ -98,6 +103,40 @@
 
         .panel-content.hidden {
             display: none;
+        }
+
+        /* Заглушка "В разработке" */
+        .coming-soon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 300px;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .coming-soon-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .coming-soon h3 {
+            color: white;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .coming-soon p {
+            color: #888;
+            font-size: 14px;
+        }
+
+        .coming-soon small {
+            color: #666;
+            font-size: 12px;
+            margin-top: 20px;
         }
 
         .dialog-item {
@@ -132,14 +171,6 @@
             color: white;
         }
 
-        .dialog-avatar.channel {
-            background: #ff6b6b;
-        }
-
-        .dialog-avatar.group {
-            background: #28a745;
-        }
-
         .dialog-info {
             flex: 1;
         }
@@ -156,19 +187,14 @@
             margin-top: 2px;
         }
 
-        .create-btn {
-            margin: 15px;
-            padding: 12px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 30px;
-            cursor: pointer;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+        .dialog-last-message {
+            color: #888;
+            font-size: 12px;
+            margin-top: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 150px;
         }
 
         .chat-main {
@@ -209,12 +235,6 @@
             font-size: 12px;
         }
 
-        .chat-header-info .member-count {
-            font-size: 10px;
-            color: #667eea;
-            margin-top: 2px;
-        }
-
         .messages-area {
             flex: 1;
             overflow-y: auto;
@@ -224,31 +244,52 @@
             gap: 8px;
         }
 
+        /* Анимация появления сообщений */
         .message {
             max-width: 70%;
             padding: 10px 14px;
             border-radius: 18px;
             font-size: 14px;
             word-wrap: break-word;
-            animation: fadeInUp 0.2s ease;
+            animation: messageAppear 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transform-origin: left;
         }
 
-        @keyframes fadeInUp {
-            from {
+        @keyframes messageAppear {
+            0% {
                 opacity: 0;
-                transform: translateY(10px);
+                transform: scale(0.8) translateY(20px);
             }
-            to {
+            50% {
+                transform: scale(1.02);
+            }
+            100% {
                 opacity: 1;
-                transform: translateY(0);
+                transform: scale(1) translateY(0);
             }
         }
 
+        /* Свои сообщения анимируются справа */
         .message.my-message {
             background: #667eea;
             color: white;
             align-self: flex-end;
             border-bottom-right-radius: 4px;
+            animation: messageAppearMy 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes messageAppearMy {
+            0% {
+                opacity: 0;
+                transform: scale(0.8) translateX(20px);
+            }
+            50% {
+                transform: scale(1.02);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateX(0);
+            }
         }
 
         .message.other-message {
@@ -291,8 +332,8 @@
             outline: none;
         }
 
-        .message-input-area input:disabled {
-            opacity: 0.5;
+        .message-input-area input::placeholder {
+            color: #888;
         }
 
         .message-input-area button {
@@ -306,74 +347,8 @@
             transition: transform 0.2s;
         }
 
-        .message-input-area button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.9);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-
-        .modal-overlay.hidden {
-            display: none;
-        }
-
-        .modal-box {
-            background: #1a1a1a;
-            padding: 30px;
-            border-radius: 30px;
-            width: 90%;
-            max-width: 400px;
-        }
-
-        .modal-box h3 {
-            color: white;
-            margin-bottom: 20px;
-        }
-
-        .modal-box input {
-            width: 100%;
-            padding: 12px;
-            border-radius: 30px;
-            border: none;
-            background: #2a2a2a;
-            color: white;
-            margin-bottom: 15px;
-        }
-
-        .modal-box button {
-            width: 100%;
-            padding: 12px;
-            border-radius: 30px;
-            border: none;
-            background: #667eea;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .modal-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        .modal-buttons button {
-            flex: 1;
-        }
-
-        .modal-buttons .cancel {
-            background: #ff4757;
+        .message-input-area button:active {
+            transform: scale(0.95);
         }
 
         .register-overlay {
@@ -432,6 +407,7 @@
             cursor: pointer;
         }
 
+        /* Адаптив */
         @media (max-width: 768px) {
             .users-panel {
                 position: fixed;
@@ -458,6 +434,9 @@
                 border-radius: 30px;
                 cursor: pointer;
             }
+            .message {
+                max-width: 85%;
+            }
         }
 
         @media (min-width: 769px) {
@@ -482,9 +461,9 @@
     <div id="registerOverlay" class="register-overlay">
         <div class="register-box">
             <h2>✨ MiniGram</h2>
-            <p>Мессенджер с каналами и группами</p>
+            <p>Твой личный мессенджер</p>
             <input type="text" id="nicknameInput" placeholder="Придумай никнейм" maxlength="20">
-            <button id="registerBtn">🚀 Начать</button>
+            <button id="registerBtn">🚀 Начать общение</button>
             <div id="registerError" style="color:#ff4757; font-size:12px; margin-top:10px;"></div>
         </div>
     </div>
@@ -503,27 +482,34 @@
 
             <div class="panel-tabs">
                 <button class="panel-tab active" data-tab="chats">💬 Чаты</button>
-                <button class="panel-tab" data-tab="channels">📢 Каналы</button>
-                <button class="panel-tab" data-tab="groups">👥 Группы</button>
+                <button class="panel-tab disabled" data-tab="channels" disabled>📢 Каналы</button>
+                <button class="panel-tab disabled" data-tab="groups" disabled>👥 Группы</button>
             </div>
 
+            <!-- Чаты (работают) -->
             <div id="chatsPanel" class="panel-content">
                 <div class="dialogs-list" id="dialogsList">
                     <div style="padding: 20px; color: #888; text-align: center;">Загрузка...</div>
                 </div>
             </div>
 
+            <!-- Каналы (в разработке) -->
             <div id="channelsPanel" class="panel-content hidden">
-                <button class="create-btn" id="createChannelBtn">➕ Создать канал</button>
-                <div class="dialogs-list" id="channelsList">
-                    <div style="padding: 20px; color: #888; text-align: center;">Нет каналов</div>
+                <div class="coming-soon">
+                    <div class="coming-soon-icon">📢</div>
+                    <h3>Скоро появится!</h3>
+                    <p>Каналы находятся в разработке</p>
+                    <small>Подписывайся на новости в Telegram</small>
                 </div>
             </div>
 
+            <!-- Группы (в разработке) -->
             <div id="groupsPanel" class="panel-content hidden">
-                <button class="create-btn" id="createGroupBtn">➕ Создать группу</button>
-                <div class="dialogs-list" id="groupsList">
-                    <div style="padding: 20px; color: #888; text-align: center;">Нет групп</div>
+                <div class="coming-soon">
+                    <div class="coming-soon-icon">👥</div>
+                    <h3>Скоро появится!</h3>
+                    <p>Группы находятся в разработке</p>
+                    <small>Создавай чаты с друзьями позже</small>
                 </div>
             </div>
         </div>
@@ -534,7 +520,6 @@
                 <div class="chat-header-info">
                     <h3 id="chatUserName">Выберите чат</h3>
                     <p id="chatUserStatus"></p>
-                    <div class="member-count" id="memberCount"></div>
                 </div>
             </div>
 
@@ -547,18 +532,6 @@
             <div class="message-input-area" style="display: none;" id="messageInputArea">
                 <input type="text" id="messageInput" placeholder="Напиши сообщение..." maxlength="500">
                 <button id="sendBtn">📤 Отправить</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="createModal" class="modal-overlay hidden">
-        <div class="modal-box">
-            <h3 id="modalTitle">Создать канал</h3>
-            <input type="text" id="modalName" placeholder="Название">
-            <input type="text" id="modalDesc" placeholder="Описание (необязательно)">
-            <div class="modal-buttons">
-                <button id="modalCreateBtn">Создать</button>
-                <button id="modalCancelBtn" class="cancel">Отмена</button>
             </div>
         </div>
     </div>
@@ -586,8 +559,6 @@
         let currentChatId = null;
         let currentChatType = null;
         let users = {};
-        let channels = {};
-        let groups = {};
         let currentMessagesRef = null;
         
         const avatars = ['😀', '😎', '🥳', '😺', '🦊', '🐼', '🌟', '🎮', '⚽', '🎵', '📚', '🎨'];
@@ -642,7 +613,7 @@
             }
         }
         
-        // ========== ЗАГРУЗКА ДАННЫХ ==========
+        // ========== ЗАГРУЗКА ПОЛЬЗОВАТЕЛЕЙ ==========
         function loadUsers() {
             database.ref('users').on('value', (snapshot) => {
                 users = snapshot.val() || {};
@@ -650,21 +621,6 @@
             });
         }
         
-        function loadChannels() {
-            database.ref('channels').on('value', (snapshot) => {
-                channels = snapshot.val() || {};
-                renderChannels();
-            });
-        }
-        
-        function loadGroups() {
-            database.ref('groups').on('value', (snapshot) => {
-                groups = snapshot.val() || {};
-                renderGroups();
-            });
-        }
-        
-        // ========== ОТОБРАЖЕНИЕ ==========
         function renderDialogs() {
             const container = document.getElementById('dialogsList');
             if (!container) return;
@@ -688,55 +644,8 @@
             `).join('');
         }
         
-        function renderChannels() {
-            const container = document.getElementById('channelsList');
-            if (!container) return;
-            
-            const channelsList = Object.values(channels);
-            
-            if (channelsList.length === 0) {
-                container.innerHTML = '<div style="padding: 20px; color: #888; text-align: center;">📢 Нет каналов<br><small>Создай первый канал!</small></div>';
-                return;
-            }
-            
-            container.innerHTML = channelsList.map(channel => `
-                <div class="dialog-item ${currentChatId === channel.id && currentChatType === 'channel' ? 'active' : ''}" onclick="selectChat('${channel.id}', 'channel')">
-                    <div class="dialog-avatar channel">📢</div>
-                    <div class="dialog-info">
-                        <div class="dialog-name">${escapeHtml(channel.name)}</div>
-                        <div class="dialog-type">📢 Канал • Подписчиков: ${channel.members ? Object.keys(channel.members).length : 1}</div>
-                        <div class="dialog-last-message">${escapeHtml(channel.description || 'Нет описания')}</div>
-                    </div>
-                </div>
-            `).join('');
-        }
-        
-        function renderGroups() {
-            const container = document.getElementById('groupsList');
-            if (!container) return;
-            
-            const groupsList = Object.values(groups);
-            
-            if (groupsList.length === 0) {
-                container.innerHTML = '<div style="padding: 20px; color: #888; text-align: center;">👥 Нет групп<br><small>Создай первую группу!</small></div>';
-                return;
-            }
-            
-            container.innerHTML = groupsList.map(group => `
-                <div class="dialog-item ${currentChatId === group.id && currentChatType === 'group' ? 'active' : ''}" onclick="selectChat('${group.id}', 'group')">
-                    <div class="dialog-avatar group">👥</div>
-                    <div class="dialog-info">
-                        <div class="dialog-name">${escapeHtml(group.name)}</div>
-                        <div class="dialog-type">👥 Группа • Участников: ${group.members ? Object.keys(group.members).length : 1}</div>
-                        <div class="dialog-last-message">${escapeHtml(group.description || 'Нет описания')}</div>
-                    </div>
-                </div>
-            `).join('');
-        }
-        
         // ========== ВЫБОР ЧАТА ==========
         window.selectChat = function(id, type) {
-            // Отписываемся от старых сообщений
             if (currentMessagesRef) {
                 currentMessagesRef.off();
             }
@@ -744,72 +653,28 @@
             currentChatId = id;
             currentChatType = type;
             
-            // Обновляем активные элементы в списках
             renderDialogs();
-            renderChannels();
-            renderGroups();
             
-            let name = '', avatar = '😀', status = '', memberCount = '';
-            
-            if (type === 'user' && users[id]) {
-                name = users[id].nickname;
-                avatar = users[id].avatar || '😀';
-                status = users[id].online ? '🟢 Онлайн' : '⚫ Офлайн';
-            } else if (type === 'channel' && channels[id]) {
-                name = channels[id].name;
-                avatar = '📢';
-                status = '📢 Канал';
-                const membersCount = channels[id].members ? Object.keys(channels[id].members).length : 1;
-                memberCount = `👥 Подписчиков: ${membersCount}`;
-                const isAdmin = channels[id].creator === myId;
-                status = isAdmin ? '👑 Вы администратор канала' : '📢 Только для чтения';
-            } else if (type === 'group' && groups[id]) {
-                name = groups[id].name;
-                avatar = '👥';
-                status = '👥 Группа';
-                const membersCount = groups[id].members ? Object.keys(groups[id].members).length : 1;
-                memberCount = `👥 Участников: ${membersCount}`;
+            const selectedUser = users[id];
+            if (selectedUser) {
+                document.getElementById('chatHeader').style.display = 'flex';
+                document.getElementById('messageInputArea').style.display = 'flex';
+                document.getElementById('chatUserName').textContent = selectedUser.nickname;
+                document.getElementById('chatAvatar').textContent = selectedUser.avatar || '😀';
+                document.getElementById('chatUserStatus').innerHTML = selectedUser.online ? '🟢 Онлайн' : '⚫ Офлайн';
             }
             
-            document.getElementById('chatHeader').style.display = 'flex';
-            document.getElementById('messageInputArea').style.display = 'flex';
-            document.getElementById('chatUserName').textContent = name;
-            document.getElementById('chatAvatar').textContent = avatar;
-            document.getElementById('chatUserStatus').textContent = status;
-            document.getElementById('memberCount').textContent = memberCount;
-            
-            // Очищаем область сообщений
             const messagesArea = document.getElementById('messagesArea');
             messagesArea.innerHTML = '';
             
-            // В каналах нельзя писать обычным пользователям
-            const isChannel = type === 'channel';
-            const isChannelAdmin = isChannel && channels[id] && channels[id].creator === myId;
-            const canWrite = !isChannel || isChannelAdmin;
-            
-            const messageInput = document.getElementById('messageInput');
-            const sendBtn = document.getElementById('sendBtn');
-            
-            if (messageInput) {
-                messageInput.disabled = !canWrite;
-                messageInput.placeholder = canWrite ? 'Напиши сообщение...' : '🔒 В этом канале только администратор может писать';
-            }
-            if (sendBtn) sendBtn.disabled = !canWrite;
-            
-            // Загружаем сообщения
             loadMessages();
         };
         
         // ========== СООБЩЕНИЯ ==========
         function getChatRef() {
             if (!currentChatId || !currentChatType) return null;
-            if (currentChatType === 'user') {
-                const chatId = [myId, currentChatId].sort().join('_');
-                return database.ref('messages/users/' + chatId);
-            }
-            if (currentChatType === 'channel') return database.ref('messages/channels/' + currentChatId);
-            if (currentChatType === 'group') return database.ref('messages/groups/' + currentChatId);
-            return null;
+            const chatId = [myId, currentChatId].sort().join('_');
+            return database.ref('messages/' + chatId);
         }
         
         function loadMessages() {
@@ -818,7 +683,6 @@
             
             currentMessagesRef = chatRef;
             
-            // Загружаем последние 50 сообщений
             chatRef.limitToLast(50).once('value', (snapshot) => {
                 const messages = snapshot.val();
                 if (messages) {
@@ -829,10 +693,8 @@
                 }
             });
             
-            // Слушаем новые сообщения
             chatRef.on('child_added', (snapshot) => {
                 const message = snapshot.val();
-                // Проверяем, не добавлено ли уже это сообщение
                 const existingMsg = document.querySelector(`[data-msg-id="${message.id}"]`);
                 if (!existingMsg) {
                     displayMessage(message);
@@ -848,6 +710,10 @@
             const date = new Date(message.timestamp);
             const timeStr = `${date.getHours().toString().padStart(2,'0')}:${date.getMinutes().toString().padStart(2,'0')}`;
             
+            if (container.children.length === 1 && container.children[0].innerText.includes('Выберите чат')) {
+                container.innerHTML = '';
+            }
+            
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${isMyMessage ? 'my-message' : 'other-message'}`;
             messageDiv.setAttribute('data-msg-id', message.id);
@@ -857,22 +723,17 @@
                 <div class="message-time">${timeStr}</div>
             `;
             container.appendChild(messageDiv);
-            container.scrollTop = container.scrollHeight;
+            
+            // Плавная прокрутка к новому сообщению
+            setTimeout(() => {
+                messageDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 50);
         }
         
         function sendMessage() {
             const input = document.getElementById('messageInput');
             const text = input.value.trim();
             if (!text || !currentChatId || !currentChatType) return;
-            
-            // Проверка прав в канале
-            if (currentChatType === 'channel') {
-                const channel = channels[currentChatId];
-                if (channel && channel.creator !== myId) {
-                    alert('🔒 Только администратор может писать в канале');
-                    return;
-                }
-            }
             
             const message = {
                 id: Date.now() + '_' + Math.random(),
@@ -889,42 +750,6 @@
             }
         }
         
-        // ========== СОЗДАНИЕ КАНАЛА/ГРУППЫ ==========
-        let createType = null;
-        
-        function showCreateModal(type) {
-            createType = type;
-            document.getElementById('modalTitle').textContent = type === 'channel' ? '📢 Создать канал' : '👥 Создать группу';
-            document.getElementById('modalName').value = '';
-            document.getElementById('modalDesc').value = '';
-            document.getElementById('createModal').classList.remove('hidden');
-        }
-        
-        function createChannelOrGroup() {
-            const name = document.getElementById('modalName').value.trim();
-            const desc = document.getElementById('modalDesc').value.trim();
-            
-            if (!name) {
-                alert('Введите название!');
-                return;
-            }
-            
-            const data = {
-                id: Date.now() + '_' + Math.random(),
-                name: name,
-                description: desc,
-                creator: myId,
-                createdAt: Date.now(),
-                members: { [myId]: true }
-            };
-            
-            const ref = createType === 'channel' ? database.ref('channels/' + data.id) : database.ref('groups/' + data.id);
-            ref.set(data);
-            
-            document.getElementById('createModal').classList.add('hidden');
-            alert(`✅ ${createType === 'channel' ? 'Канал' : 'Группа'} "${name}" создан!`);
-        }
-        
         // ========== ПАНЕЛЬ ВКЛАДОК ==========
         function initTabs() {
             const tabs = document.querySelectorAll('.panel-tab');
@@ -936,6 +761,26 @@
             
             tabs.forEach(tab => {
                 tab.addEventListener('click', () => {
+                    // Если вкладка disabled — показываем заглушку
+                    if (tab.classList.contains('disabled')) {
+                        // Показываем всплывающее сообщение
+                        const msg = document.createElement('div');
+                        msg.textContent = '🔧 В разработке! Скоро появится';
+                        msg.style.position = 'fixed';
+                        msg.style.bottom = '100px';
+                        msg.style.left = '50%';
+                        msg.style.transform = 'translateX(-50%)';
+                        msg.style.background = '#667eea';
+                        msg.style.color = 'white';
+                        msg.style.padding = '10px 20px';
+                        msg.style.borderRadius = '30px';
+                        msg.style.zIndex = '1000';
+                        msg.style.fontSize = '14px';
+                        document.body.appendChild(msg);
+                        setTimeout(() => msg.remove(), 2000);
+                        return;
+                    }
+                    
                     tabs.forEach(t => t.classList.remove('active'));
                     tab.classList.add('active');
                     Object.values(panels).forEach(p => p.classList.add('hidden'));
@@ -956,7 +801,12 @@
         }
         
         function watchUserStatus() {
-            database.ref('users').on('value', () => renderDialogs());
+            database.ref('users').on('value', () => {
+                renderDialogs();
+                if (currentChatId && users[currentChatId]) {
+                    document.getElementById('chatUserStatus').innerHTML = users[currentChatId].online ? '🟢 Онлайн' : '⚫ Офлайн';
+                }
+            });
         }
         
         function escapeHtml(text) {
@@ -981,8 +831,6 @@
         
         function initApp() {
             loadUsers();
-            loadChannels();
-            loadGroups();
             updateOnlineStatus();
             watchUserStatus();
             initTabs();
@@ -991,13 +839,6 @@
             document.getElementById('sendBtn').addEventListener('click', sendMessage);
             document.getElementById('messageInput').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') sendMessage();
-            });
-            
-            document.getElementById('createChannelBtn').addEventListener('click', () => showCreateModal('channel'));
-            document.getElementById('createGroupBtn').addEventListener('click', () => showCreateModal('group'));
-            document.getElementById('modalCreateBtn').addEventListener('click', createChannelOrGroup);
-            document.getElementById('modalCancelBtn').addEventListener('click', () => {
-                document.getElementById('createModal').classList.add('hidden');
             });
         }
         
