@@ -133,12 +133,6 @@
             font-size: 14px;
         }
 
-        .coming-soon small {
-            color: #666;
-            font-size: 12px;
-            margin-top: 20px;
-        }
-
         .dialog-item {
             padding: 12px 20px;
             display: flex;
@@ -225,6 +219,10 @@
             font-weight: bold;
         }
 
+        .chat-header-info {
+            flex: 1;
+        }
+
         .chat-header-info h3 {
             color: white;
             font-size: 16px;
@@ -233,6 +231,51 @@
         .chat-header-info p {
             color: #888;
             font-size: 12px;
+        }
+
+        /* Кнопка вызова */
+        .call-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .call-btn:active {
+            transform: scale(0.95);
+        }
+
+        .call-btn:hover {
+            background: linear-gradient(135deg, #20c997, #28a745);
+        }
+
+        /* Сообщение-приглашение */
+        .invite-message {
+            background: linear-gradient(135deg, #28a745, #20c997) !important;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .invite-message .message-sender {
+            color: rgba(255,255,255,0.9);
+        }
+
+        /* Анимация для приглашения */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        .invite-message {
+            animation: pulse 0.5s ease;
         }
 
         .messages-area {
@@ -244,7 +287,6 @@
             gap: 8px;
         }
 
-        /* Анимация появления сообщений */
         .message {
             max-width: 70%;
             padding: 10px 14px;
@@ -252,7 +294,6 @@
             font-size: 14px;
             word-wrap: break-word;
             animation: messageAppear 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            transform-origin: left;
         }
 
         @keyframes messageAppear {
@@ -269,7 +310,6 @@
             }
         }
 
-        /* Свои сообщения анимируются справа */
         .message.my-message {
             background: #667eea;
             color: white;
@@ -351,6 +391,32 @@
             transform: scale(0.95);
         }
 
+        /* Всплывающее уведомление */
+        .toast-notification {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 1000;
+            opacity: 0;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toast-notification.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
         .register-overlay {
             position: fixed;
             top: 0;
@@ -407,7 +473,6 @@
             cursor: pointer;
         }
 
-        /* Адаптив */
         @media (max-width: 768px) {
             .users-panel {
                 position: fixed;
@@ -436,6 +501,13 @@
             }
             .message {
                 max-width: 85%;
+            }
+            .call-btn span {
+                display: none;
+            }
+            .call-btn {
+                font-size: 24px;
+                padding: 8px 12px;
             }
         }
 
@@ -486,30 +558,25 @@
                 <button class="panel-tab disabled" data-tab="groups" disabled>👥 Группы</button>
             </div>
 
-            <!-- Чаты (работают) -->
             <div id="chatsPanel" class="panel-content">
                 <div class="dialogs-list" id="dialogsList">
                     <div style="padding: 20px; color: #888; text-align: center;">Загрузка...</div>
                 </div>
             </div>
 
-            <!-- Каналы (в разработке) -->
             <div id="channelsPanel" class="panel-content hidden">
                 <div class="coming-soon">
                     <div class="coming-soon-icon">📢</div>
                     <h3>Скоро появится!</h3>
                     <p>Каналы находятся в разработке</p>
-                    <small>Подписывайся на новости в Telegram</small>
                 </div>
             </div>
 
-            <!-- Группы (в разработке) -->
             <div id="groupsPanel" class="panel-content hidden">
                 <div class="coming-soon">
                     <div class="coming-soon-icon">👥</div>
                     <h3>Скоро появится!</h3>
                     <p>Группы находятся в разработке</p>
-                    <small>Создавай чаты с друзьями позже</small>
                 </div>
             </div>
         </div>
@@ -521,6 +588,7 @@
                     <h3 id="chatUserName">Выберите чат</h3>
                     <p id="chatUserStatus"></p>
                 </div>
+                <button class="call-btn" id="callBtn">📞 <span>Позвать</span></button>
             </div>
 
             <div class="messages-area" id="messagesArea">
@@ -536,6 +604,12 @@
         </div>
     </div>
 
+    <!-- Всплывающее уведомление -->
+    <div id="toastNotification" class="toast-notification">
+        <span>🔔</span>
+        <span id="toastMessage"></span>
+    </div>
+
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     
@@ -544,6 +618,7 @@
         const firebaseConfig = {
   apiKey: "AIzaSyCKod1JVM2fp6kbCHfYdbAFJgTOHg8Kzfk",
   authDomain: "sitemaker-c4226.firebaseapp.com",
+  databaseURL: "https://sitemaker-c4226-default-rtdb.firebaseio.com",
   projectId: "sitemaker-c4226",
   storageBucket: "sitemaker-c4226.firebasestorage.app",
   messagingSenderId: "1044402198283",
@@ -565,6 +640,29 @@
         
         function getRandomAvatar() {
             return avatars[Math.floor(Math.random() * avatars.length)];
+        }
+        
+        // Всплывающее уведомление
+        function showToast(message, isCall = false) {
+            const toast = document.getElementById('toastNotification');
+            const toastMessage = document.getElementById('toastMessage');
+            toastMessage.innerHTML = message;
+            toast.classList.add('show');
+            
+            // Если это звонок, добавляем звуковой эффект
+            if (isCall) {
+                // Простая вибрация (если поддерживается)
+                if (navigator.vibrate) navigator.vibrate(200);
+                // Меняем цвет на более яркий
+                toast.style.background = "linear-gradient(135deg, #ff4757, #ff6b6b)";
+                setTimeout(() => {
+                    toast.style.background = "linear-gradient(135deg, #28a745, #20c997)";
+                }, 2000);
+            }
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 4000);
         }
         
         // ========== РЕГИСТРАЦИЯ ==========
@@ -698,6 +796,11 @@
                 const existingMsg = document.querySelector(`[data-msg-id="${message.id}"]`);
                 if (!existingMsg) {
                     displayMessage(message);
+                    
+                    // Если это приглашение и оно не от меня — показываем уведомление
+                    if (message.isInvite && message.senderId !== myId) {
+                        showToast(`📞 ${message.senderNickname} зовёт вас в чат!`, true);
+                    }
                 }
             });
         }
@@ -715,16 +818,23 @@
             }
             
             const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${isMyMessage ? 'my-message' : 'other-message'}`;
+            let additionalClass = '';
+            let inviteText = '';
+            
+            if (message.isInvite) {
+                additionalClass = 'invite-message';
+                inviteText = ' 📞';
+            }
+            
+            messageDiv.className = `message ${isMyMessage ? 'my-message' : 'other-message'} ${additionalClass}`;
             messageDiv.setAttribute('data-msg-id', message.id);
             messageDiv.innerHTML = `
                 ${!isMyMessage ? `<div class="message-sender">${escapeHtml(message.senderNickname)}</div>` : ''}
-                ${escapeHtml(message.text)}
+                ${escapeHtml(message.text)}${inviteText}
                 <div class="message-time">${timeStr}</div>
             `;
             container.appendChild(messageDiv);
             
-            // Плавная прокрутка к новому сообщению
             setTimeout(() => {
                 messageDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }, 50);
@@ -750,6 +860,39 @@
             }
         }
         
+        // ========== ОТПРАВКА ПРИГЛАШЕНИЯ ==========
+        function sendInvite() {
+            if (!currentChatId || !currentChatType) {
+                showToast('❌ Сначала выбери чат');
+                return;
+            }
+            
+            const selectedUser = users[currentChatId];
+            if (!selectedUser) return;
+            
+            const message = {
+                id: Date.now() + '_' + Math.random(),
+                senderId: myId,
+                senderNickname: myNickname,
+                text: `🔔 ${myNickname} зовёт вас в чат!`,
+                timestamp: Date.now(),
+                isInvite: true
+            };
+            
+            const chatRef = getChatRef();
+            if (chatRef) {
+                chatRef.push(message);
+                showToast(`📞 Приглашение отправлено ${selectedUser.nickname}!`);
+                
+                // Добавляем эффект
+                const callBtn = document.getElementById('callBtn');
+                callBtn.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    callBtn.style.transform = 'scale(1)';
+                }, 200);
+            }
+        }
+        
         // ========== ПАНЕЛЬ ВКЛАДОК ==========
         function initTabs() {
             const tabs = document.querySelectorAll('.panel-tab');
@@ -761,23 +904,8 @@
             
             tabs.forEach(tab => {
                 tab.addEventListener('click', () => {
-                    // Если вкладка disabled — показываем заглушку
                     if (tab.classList.contains('disabled')) {
-                        // Показываем всплывающее сообщение
-                        const msg = document.createElement('div');
-                        msg.textContent = '🔧 В разработке! Скоро появится';
-                        msg.style.position = 'fixed';
-                        msg.style.bottom = '100px';
-                        msg.style.left = '50%';
-                        msg.style.transform = 'translateX(-50%)';
-                        msg.style.background = '#667eea';
-                        msg.style.color = 'white';
-                        msg.style.padding = '10px 20px';
-                        msg.style.borderRadius = '30px';
-                        msg.style.zIndex = '1000';
-                        msg.style.fontSize = '14px';
-                        document.body.appendChild(msg);
-                        setTimeout(() => msg.remove(), 2000);
+                        showToast('🔧 В разработке! Скоро появится');
                         return;
                     }
                     
@@ -840,6 +968,8 @@
             document.getElementById('messageInput').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') sendMessage();
             });
+            
+            document.getElementById('callBtn').addEventListener('click', sendInvite);
         }
         
         document.getElementById('registerBtn').addEventListener('click', register);
