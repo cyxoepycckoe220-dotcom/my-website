@@ -4,22 +4,193 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SiteMaker</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: system-ui; background: #f5f5f5; min-height: 100vh; cursor: none; }
+        
+        /* Своя мышка */
+        .my-cursor {
+            width: 24px; height: 24px;
+            border: 2px solid #ff0000;
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            background: rgba(255,0,0,0.3);
+            transition: 0.02s linear;
+        }
+        
+        /* Чужие мышки */
+        .remote-cursor {
+            position: fixed;
+            width: 20px; height: 20px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9998;
+            transition: 0.02s linear;
+        }
+        
+        .cursor-name {
+            position: absolute;
+            top: -22px;
+            left: -10px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 12px;
+            white-space: nowrap;
+        }
+        
+        .toolbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .logo { font-size: 24px; font-weight: bold; }
+        
+        .toolbar-buttons { display: flex; gap: 15px; }
+        
+        .editor-btn, .exit-btn, .online-btn {
+            padding: 8px 20px;
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .editor-btn { background: white; color: #667eea; }
+        .exit-btn { background: #ff4757; color: white; display: none; }
+        .online-btn { background: rgba(255,255,255,0.2); color: white; }
+        
+        .page-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            min-height: calc(100vh - 70px);
+        }
+        
+        .editable-element {
+            position: relative;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        
+        .editable-element:hover { outline: 2px dashed #667eea; background: rgba(102,126,234,0.05); }
+        
+        .element-controls {
+            position: absolute;
+            top: -30px;
+            right: 0;
+            display: flex;
+            gap: 5px;
+            opacity: 0;
+        }
+        
+        .editable-element:hover .element-controls { opacity: 1; }
+        
+        .element-controls button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .element-controls .delete-element { background: #ff4757; }
+        
+        .editor-panel {
+            position: fixed;
+            right: 0;
+            top: 70px;
+            width: 320px;
+            background: white;
+            border-radius: 16px 0 0 16px;
+            box-shadow: -4px 4px 20px rgba(0,0,0,0.15);
+            z-index: 200;
+            transition: transform 0.3s;
+        }
+        
+        .editor-panel.hidden { transform: translateX(100%); }
+        
+        .editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: #667eea;
+            color: white;
+            border-radius: 16px 0 0 0;
+        }
+        
+        .close-editor {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        
+        .editor-tools { padding: 20px; max-height: calc(100vh - 140px); overflow-y: auto; }
+        
+        .tool-group { margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
+        
+        .tool-group h4 { margin-bottom: 12px; }
+        
+        .tool-group label { display: block; margin: 10px 0 5px; font-size: 12px; color: #666; }
+        
+        .tool-group input, .tool-group select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        
+        .tool-btn {
+            display: inline-block;
+            margin: 5px;
+            padding: 8px 16px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        
+        .tool-btn.danger { background: #ff4757; color: white; }
+        .tool-btn.success { background: #28a745; color: white; }
+        
+        .welcome-message {
+            text-align: center;
+            padding: 60px;
+            background: white;
+            border-radius: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .editor-panel { width: 100%; top: auto; bottom: 0; border-radius: 16px 16px 0 0; max-height: 60vh; }
+            .toolbar { flex-direction: column; gap: 10px; }
+        }
+    </style>
 </head>
 <body>
     <div class="toolbar">
         <div class="logo">✨ SiteMaker</div>
         <div class="toolbar-buttons">
             <button id="editorBtn" class="editor-btn">✏️ Редактор</button>
-            <button id="exitEditorBtn" class="exit-btn" style="display:none;">🔒 Выйти из редактора</button>
+            <button id="exitEditorBtn" class="exit-btn">🔒 Выйти из редактора</button>
             <button id="onlineCount" class="online-btn">👥 0 онлайн</button>
         </div>
     </div>
 
-    <!-- Контейнер для чужих мышек -->
-    <div id="remoteCursorsContainer" class="remote-cursors"></div>
-
-    <!-- Сама страница -->
     <div id="pageContent" class="page-content">
         <div class="welcome-message">
             <h1>✨ Добро пожаловать в SiteMaker!</h1>
@@ -28,7 +199,6 @@
         </div>
     </div>
 
-    <!-- Панель редактора -->
     <div id="editorPanel" class="editor-panel hidden">
         <div class="editor-header">
             <h3>🎨 Редактор сайта</h3>
@@ -41,7 +211,6 @@
                 <button id="addTitleBtn" class="tool-btn">📌 Заголовок</button>
                 <button id="addButtonBtn" class="tool-btn">🔘 Кнопка</button>
                 <button id="addImageBtn" class="tool-btn">🖼️ Картинка</button>
-                <button id="addHtmlBtn" class="tool-btn">💻 HTML код</button>
             </div>
             <div class="tool-group">
                 <h4>🎨 Стили</h4>
@@ -49,25 +218,829 @@
                 <input type="color" id="bgColor" value="#f5f5f5">
                 <label>Цвет текста:</label>
                 <input type="color" id="textColor" value="#000000">
-                <label>Шрифт:</label>
-                <select id="fontFamily">
-                    <option value="system-ui">Системный</option>
-                    <option value="Arial">Arial</option>
-                    <option value="Georgia">Georgia</option>
-                </select>
             </div>
             <div class="tool-group">
                 <h4>⚡ Управление</h4>
                 <button id="clearSiteBtn" class="tool-btn danger">🗑️ Очистить сайт</button>
-                <button id="saveSiteBtn" class="tool-btn success">💾 Сохранить</button>
             </div>
         </div>
     </div>
 
-    <!-- Своя мышка (видна только тебе) -->
     <div id="myCursor" class="my-cursor"></div>
 
-    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-    <script src="script.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    
+    <script>
+        // ========== ВСТАВЬ СВОИ КЛЮЧИ ИЗ FIREBASE ==========
+        <!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SiteMaker</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: system-ui; background: #f5f5f5; min-height: 100vh; cursor: none; }
+        
+        /* Своя мышка */
+        .my-cursor {
+            width: 24px; height: 24px;
+            border: 2px solid #ff0000;
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            background: rgba(255,0,0,0.3);
+            transition: 0.02s linear;
+        }
+        
+        /* Чужие мышки */
+        .remote-cursor {
+            position: fixed;
+            width: 20px; height: 20px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9998;
+            transition: 0.02s linear;
+        }
+        
+        .cursor-name {
+            position: absolute;
+            top: -22px;
+            left: -10px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 12px;
+            white-space: nowrap;
+        }
+        
+        .toolbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .logo { font-size: 24px; font-weight: bold; }
+        
+        .toolbar-buttons { display: flex; gap: 15px; }
+        
+        .editor-btn, .exit-btn, .online-btn {
+            padding: 8px 20px;
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .editor-btn { background: white; color: #667eea; }
+        .exit-btn { background: #ff4757; color: white; display: none; }
+        .online-btn { background: rgba(255,255,255,0.2); color: white; }
+        
+        .page-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            min-height: calc(100vh - 70px);
+        }
+        
+        .editable-element {
+            position: relative;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        
+        .editable-element:hover { outline: 2px dashed #667eea; background: rgba(102,126,234,0.05); }
+        
+        .element-controls {
+            position: absolute;
+            top: -30px;
+            right: 0;
+            display: flex;
+            gap: 5px;
+            opacity: 0;
+        }
+        
+        .editable-element:hover .element-controls { opacity: 1; }
+        
+        .element-controls button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .element-controls .delete-element { background: #ff4757; }
+        
+        .editor-panel {
+            position: fixed;
+            right: 0;
+            top: 70px;
+            width: 320px;
+            background: white;
+            border-radius: 16px 0 0 16px;
+            box-shadow: -4px 4px 20px rgba(0,0,0,0.15);
+            z-index: 200;
+            transition: transform 0.3s;
+        }
+        
+        .editor-panel.hidden { transform: translateX(100%); }
+        
+        .editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: #667eea;
+            color: white;
+            border-radius: 16px 0 0 0;
+        }
+        
+        .close-editor {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        
+        .editor-tools { padding: 20px; max-height: calc(100vh - 140px); overflow-y: auto; }
+        
+        .tool-group { margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
+        
+        .tool-group h4 { margin-bottom: 12px; }
+        
+        .tool-group label { display: block; margin: 10px 0 5px; font-size: 12px; color: #666; }
+        
+        .tool-group input, .tool-group select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        
+        .tool-btn {
+            display: inline-block;
+            margin: 5px;
+            padding: 8px 16px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        
+        .tool-btn.danger { background: #ff4757; color: white; }
+        .tool-btn.success { background: #28a745; color: white; }
+        
+        .welcome-message {
+            text-align: center;
+            padding: 60px;
+            background: white;
+            border-radius: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .editor-panel { width: 100%; top: auto; bottom: 0; border-radius: 16px 16px 0 0; max-height: 60vh; }
+            .toolbar { flex-direction: column; gap: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <div class="logo">✨ SiteMaker</div>
+        <div class="toolbar-buttons">
+            <button id="editorBtn" class="editor-btn">✏️ Редактор</button>
+            <button id="exitEditorBtn" class="exit-btn">🔒 Выйти из редактора</button>
+            <button id="onlineCount" class="online-btn">👥 0 онлайн</button>
+        </div>
+    </div>
+
+    <div id="pageContent" class="page-content">
+        <div class="welcome-message">
+            <h1>✨ Добро пожаловать в SiteMaker!</h1>
+            <p>Нажми на кнопку "Редактор", чтобы начать создавать свой сайт</p>
+            <p>Все изменения видны всем онлайн! А ещё ты видишь мышки других людей 🖱️</p>
+        </div>
+    </div>
+
+    <div id="editorPanel" class="editor-panel hidden">
+        <div class="editor-header">
+            <h3>🎨 Редактор сайта</h3>
+            <button id="closeEditorBtn" class="close-editor">✖️</button>
+        </div>
+        <div class="editor-tools">
+            <div class="tool-group">
+                <h4>➕ Добавить блок</h4>
+                <button id="addTextBtn" class="tool-btn">📝 Текст</button>
+                <button id="addTitleBtn" class="tool-btn">📌 Заголовок</button>
+                <button id="addButtonBtn" class="tool-btn">🔘 Кнопка</button>
+                <button id="addImageBtn" class="tool-btn">🖼️ Картинка</button>
+            </div>
+            <div class="tool-group">
+                <h4>🎨 Стили</h4>
+                <label>Цвет фона:</label>
+                <input type="color" id="bgColor" value="#f5f5f5">
+                <label>Цвет текста:</label>
+                <input type="color" id="textColor" value="#000000">
+            </div>
+            <div class="tool-group">
+                <h4>⚡ Управление</h4>
+                <button id="clearSiteBtn" class="tool-btn danger">🗑️ Очистить сайт</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="myCursor" class="my-cursor"></div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    
+    <script>
+        // ========== ВСТАВЬ СВОИ КЛЮЧИ ИЗ FIREBASE ==========
+        const firebaseConfig = {
+  apiKey: "AIzaSyCKod1JVM2fp6kbCHfYdbAFJgTOHg8Kzfk",
+  authDomain: "sitemaker-c4226.firebaseapp.com",
+  projectId: "sitemaker-c4226",
+  storageBucket: "sitemaker-c4226.firebasestorage.app",
+  messagingSenderId: "1044402198283",
+  appId: "1:1044402198283:web:504fd7e7a4199eb8de340e"
+};
+        
+        // Инициализация Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        
+        // ========== ОСТАЛЬНОЙ КОД ==========
+        let myId = Math.random().toString(36).substr(2, 8);
+        let myName = prompt('Введи своё имя:', 'User_' + myId.substr(0, 4)) || 'Guest';
+        let isEditorMode = false;
+        let siteElements = [];
+        
+        // Загрузка сайта
+        function loadSite() {
+            const saved = localStorage.getItem('sitemaker_site');
+            if (saved) {
+                siteElements = JSON.parse(saved);
+            } else {
+                siteElements = [
+                    { id: '1', type: 'title', content: '✨ SiteMaker' },
+                    { id: '2', type: 'text', content: 'Создай свой сайт вместе с друзьями! Ты видишь их мышки? 🖱️' },
+                    { id: '3', type: 'button', content: 'Нажми меня', link: '#' }
+                ];
+            }
+            renderSite();
+        }
+        
+        function saveSite() {
+            localStorage.setItem('sitemaker_site', JSON.stringify(siteElements));
+            // Сохраняем в Firebase чтобы другие видели
+            database.ref('siteContent').set({ elements: siteElements });
+        }
+        
+        function renderSite() {
+            const container = document.getElementById('pageContent');
+            if (!container) return;
+            
+            const bgColor = localStorage.getItem('bgColor') || '#f5f5f5';
+            const textColor = localStorage.getItem('textColor') || '#000000';
+            document.body.style.backgroundColor = bgColor;
+            document.body.style.color = textColor;
+            
+            container.innerHTML = '';
+            
+            siteElements.forEach(element => {
+                const div = document.createElement('div');
+                div.className = 'editable-element';
+                div.dataset.id = element.id;
+                
+                if (element.type === 'title') {
+                    const h = document.createElement('h1');
+                    h.textContent = element.content;
+                    div.appendChild(h);
+                } else if (element.type === 'text') {
+                    const p = document.createElement('p');
+                    p.textContent = element.content;
+                    div.appendChild(p);
+                } else if (element.type === 'button') {
+                    const btn = document.createElement('button');
+                    btn.textContent = element.content;
+                    btn.style.padding = '10px 20px';
+                    btn.style.borderRadius = '30px';
+                    btn.style.border = 'none';
+                    btn.style.cursor = 'pointer';
+                    btn.style.background = '#667eea';
+                    btn.style.color = 'white';
+                    if (element.link && element.link !== '#') {
+                        btn.onclick = () => window.open(element.link, '_blank');
+                    }
+                    div.appendChild(btn);
+                } else if (element.type === 'image') {
+                    const img = document.createElement('img');
+                    img.src = element.content;
+                    img.style.maxWidth = '100%';
+                    img.style.borderRadius = '12px';
+                    div.appendChild(img);
+                }
+                
+                if (isEditorMode) {
+                    const controls = document.createElement('div');
+                    controls.className = 'element-controls';
+                    controls.innerHTML = `
+                        <button onclick="editElement('${element.id}')">✏️</button>
+                        <button class="delete-element" onclick="deleteElement('${element.id}')">🗑️</button>
+                    `;
+                    div.appendChild(controls);
+                }
+                
+                container.appendChild(div);
+            });
+            
+            if (siteElements.length === 0 && !isEditorMode) {
+                container.innerHTML = `<div class="welcome-message"><h1>✨ SiteMaker</h1><p>Нажми "Редактор" чтобы начать!</p></div>`;
+            }
+        }
+        
+        window.editElement = function(id) {
+            const el = siteElements.find(e => e.id === id);
+            if (!el) return;
+            let newContent = prompt('Редактировать:', el.content);
+            if (newContent) el.content = newContent;
+            if (el.type === 'button') {
+                let newLink = prompt('Ссылка:', el.link || '#');
+                if (newLink) el.link = newLink;
+            }
+            saveSite();
+            renderSite();
+        };
+        
+        window.deleteElement = function(id) {
+            if (confirm('Удалить?')) {
+                siteElements = siteElements.filter(e => e.id !== id);
+                saveSite();
+                renderSite();
+            }
+        };
+        
+        function addElement(type) {
+            let content = '';
+            if (type === 'title') content = prompt('Заголовок:', 'Новый заголовок');
+            else if (type === 'text') content = prompt('Текст:', 'Новый текст');
+            else if (type === 'button') content = prompt('Текст кнопки:', 'Нажми меня');
+            else if (type === 'image') content = prompt('URL картинки:', 'https://picsum.photos/300/200');
+            if (!content) return;
+            
+            siteElements.push({
+                id: Date.now() + '',
+                type: type,
+                content: content,
+                link: '#'
+            });
+            saveSite();
+            renderSite();
+        }
+        
+        function clearSite() {
+            if (confirm('Очистить всё?')) {
+                siteElements = [];
+                saveSite();
+                renderSite();
+            }
+        }
+        
+        function applyStyles() {
+            const bg = document.getElementById('bgColor')?.value;
+            const color = document.getElementById('textColor')?.value;
+            if (bg) localStorage.setItem('bgColor', bg);
+            if (color) localStorage.setItem('textColor', color);
+            renderSite();
+        }
+        
+        function enterEditor() {
+            isEditorMode = true;
+            document.getElementById('editorBtn').style.display = 'none';
+            document.getElementById('exitEditorBtn').style.display = 'block';
+            document.getElementById('editorPanel').classList.remove('hidden');
+            renderSite();
+        }
+        
+        function exitEditor() {
+            isEditorMode = false;
+            document.getElementById('editorBtn').style.display = 'block';
+            document.getElementById('exitEditorBtn').style.display = 'none';
+            document.getElementById('editorPanel').classList.add('hidden');
+            renderSite();
+        }
+        
+        // ========== ЖИВЫЕ МЫШКИ ЧЕРЕЗ FIREBASE ==========
+        let cursorsRef = database.ref('cursors');
+        let onlineCount = 0;
+        
+        // Отправляем свою позицию
+        function sendMousePosition(x, y) {
+            const myCursorRef = database.ref('cursors/' + myId);
+            myCursorRef.set({
+                x: x,
+                y: y,
+                name: myName,
+                timestamp: Date.now()
+            });
+        }
+        
+        // Удаляем себя при выходе
+        function removeMyCursor() {
+            database.ref('cursors/' + myId).remove();
+        }
+        
+        // Слушаем чужие мышки
+        function listenCursors() {
+            cursorsRef.on('value', (snapshot) => {
+                const cursors = snapshot.val() || {};
+                const container = document.getElementById('pageContent').parentNode;
+                
+                // Удаляем старые чужие мышки
+                document.querySelectorAll('.remote-cursor').forEach(el => el.remove());
+                
+                let count = 0;
+                for (let id in cursors) {
+                    if (id === myId) continue;
+                    count++;
+                    const cursor = cursors[id];
+                    const colors = ['#ff0000', '#00ff00', '#0066ff', '#ffaa00', '#ff00ff', '#00cccc'];
+                    const colorIndex = (id.charCodeAt(0) || 0) % colors.length;
+                    
+                    const cursorDiv = document.createElement('div');
+                    cursorDiv.className = 'remote-cursor';
+                    cursorDiv.style.left = cursor.x + 'px';
+                    cursorDiv.style.top = cursor.y + 'px';
+                    cursorDiv.style.border = `2px solid ${colors[colorIndex]}`;
+                    cursorDiv.style.background = `${colors[colorIndex]}33`;
+                    cursorDiv.innerHTML = `<div class="cursor-name">${cursor.name || '???'}</div>`;
+                    document.body.appendChild(cursorDiv);
+                }
+                
+                // Обновляем счётчик онлайн
+                document.getElementById('onlineCount').innerHTML = `👥 ${count + 1} онлайн`;
+                
+                // Чистим старые курсоры (старше 5 секунд)
+                const now = Date.now();
+                for (let id in cursors) {
+                    if (cursors[id].timestamp && now - cursors[id].timestamp > 5000) {
+                        database.ref('cursors/' + id).remove();
+                    }
+                }
+            });
+        }
+        
+        // Слушаем изменения контента от других
+        function listenSiteChanges() {
+            database.ref('siteContent').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data && data.elements && !isEditorMode) {
+                    // Не обновляем если мы в режиме редактора (чтобы не конфликтовать)
+                    if (JSON.stringify(siteElements) !== JSON.stringify(data.elements)) {
+                        siteElements = data.elements;
+                        renderSite();
+                    }
+                }
+            });
+        }
+        
+        // Своя мышка
+        function initMyCursor() {
+            const cursor = document.getElementById('myCursor');
+            document.addEventListener('mousemove', (e) => {
+                cursor.style.left = (e.clientX - 12) + 'px';
+                cursor.style.top = (e.clientY - 12) + 'px';
+                sendMousePosition(e.clientX, e.clientY);
+            });
+            
+            document.addEventListener('mouseleave', removeMyCursor);
+            window.addEventListener('beforeunload', removeMyCursor);
+        }
+        
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSite();
+            initMyCursor();
+            listenCursors();
+            listenSiteChanges();
+            
+            // Отправляем "сердцебиение" чтобы не удалили
+            setInterval(() => {
+                if (myId) {
+                    database.ref('cursors/' + myId).update({ timestamp: Date.now() });
+                }
+            }, 3000);
+            
+            document.getElementById('editorBtn').onclick = enterEditor;
+            document.getElementById('exitEditorBtn').onclick = exitEditor;
+            document.getElementById('closeEditorBtn').onclick = exitEditor;
+            document.getElementById('clearSiteBtn').onclick = clearSite;
+            
+            document.getElementById('addTextBtn').onclick = () => addElement('text');
+            document.getElementById('addTitleBtn').onclick = () => addElement('title');
+            document.getElementById('addButtonBtn').onclick = () => addElement('button');
+            document.getElementById('addImageBtn').onclick = () => addElement('image');
+            
+            document.getElementById('bgColor').onchange = applyStyles;
+            document.getElementById('textColor').onchange = applyStyles;
+        });
+    </script>
+</body>
+</html>
+        
+        // Инициализация Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        
+        // ========== ОСТАЛЬНОЙ КОД ==========
+        let myId = Math.random().toString(36).substr(2, 8);
+        let myName = prompt('Введи своё имя:', 'User_' + myId.substr(0, 4)) || 'Guest';
+        let isEditorMode = false;
+        let siteElements = [];
+        
+        // Загрузка сайта
+        function loadSite() {
+            const saved = localStorage.getItem('sitemaker_site');
+            if (saved) {
+                siteElements = JSON.parse(saved);
+            } else {
+                siteElements = [
+                    { id: '1', type: 'title', content: '✨ SiteMaker' },
+                    { id: '2', type: 'text', content: 'Создай свой сайт вместе с друзьями! Ты видишь их мышки? 🖱️' },
+                    { id: '3', type: 'button', content: 'Нажми меня', link: '#' }
+                ];
+            }
+            renderSite();
+        }
+        
+        function saveSite() {
+            localStorage.setItem('sitemaker_site', JSON.stringify(siteElements));
+            // Сохраняем в Firebase чтобы другие видели
+            database.ref('siteContent').set({ elements: siteElements });
+        }
+        
+        function renderSite() {
+            const container = document.getElementById('pageContent');
+            if (!container) return;
+            
+            const bgColor = localStorage.getItem('bgColor') || '#f5f5f5';
+            const textColor = localStorage.getItem('textColor') || '#000000';
+            document.body.style.backgroundColor = bgColor;
+            document.body.style.color = textColor;
+            
+            container.innerHTML = '';
+            
+            siteElements.forEach(element => {
+                const div = document.createElement('div');
+                div.className = 'editable-element';
+                div.dataset.id = element.id;
+                
+                if (element.type === 'title') {
+                    const h = document.createElement('h1');
+                    h.textContent = element.content;
+                    div.appendChild(h);
+                } else if (element.type === 'text') {
+                    const p = document.createElement('p');
+                    p.textContent = element.content;
+                    div.appendChild(p);
+                } else if (element.type === 'button') {
+                    const btn = document.createElement('button');
+                    btn.textContent = element.content;
+                    btn.style.padding = '10px 20px';
+                    btn.style.borderRadius = '30px';
+                    btn.style.border = 'none';
+                    btn.style.cursor = 'pointer';
+                    btn.style.background = '#667eea';
+                    btn.style.color = 'white';
+                    if (element.link && element.link !== '#') {
+                        btn.onclick = () => window.open(element.link, '_blank');
+                    }
+                    div.appendChild(btn);
+                } else if (element.type === 'image') {
+                    const img = document.createElement('img');
+                    img.src = element.content;
+                    img.style.maxWidth = '100%';
+                    img.style.borderRadius = '12px';
+                    div.appendChild(img);
+                }
+                
+                if (isEditorMode) {
+                    const controls = document.createElement('div');
+                    controls.className = 'element-controls';
+                    controls.innerHTML = `
+                        <button onclick="editElement('${element.id}')">✏️</button>
+                        <button class="delete-element" onclick="deleteElement('${element.id}')">🗑️</button>
+                    `;
+                    div.appendChild(controls);
+                }
+                
+                container.appendChild(div);
+            });
+            
+            if (siteElements.length === 0 && !isEditorMode) {
+                container.innerHTML = `<div class="welcome-message"><h1>✨ SiteMaker</h1><p>Нажми "Редактор" чтобы начать!</p></div>`;
+            }
+        }
+        
+        window.editElement = function(id) {
+            const el = siteElements.find(e => e.id === id);
+            if (!el) return;
+            let newContent = prompt('Редактировать:', el.content);
+            if (newContent) el.content = newContent;
+            if (el.type === 'button') {
+                let newLink = prompt('Ссылка:', el.link || '#');
+                if (newLink) el.link = newLink;
+            }
+            saveSite();
+            renderSite();
+        };
+        
+        window.deleteElement = function(id) {
+            if (confirm('Удалить?')) {
+                siteElements = siteElements.filter(e => e.id !== id);
+                saveSite();
+                renderSite();
+            }
+        };
+        
+        function addElement(type) {
+            let content = '';
+            if (type === 'title') content = prompt('Заголовок:', 'Новый заголовок');
+            else if (type === 'text') content = prompt('Текст:', 'Новый текст');
+            else if (type === 'button') content = prompt('Текст кнопки:', 'Нажми меня');
+            else if (type === 'image') content = prompt('URL картинки:', 'https://picsum.photos/300/200');
+            if (!content) return;
+            
+            siteElements.push({
+                id: Date.now() + '',
+                type: type,
+                content: content,
+                link: '#'
+            });
+            saveSite();
+            renderSite();
+        }
+        
+        function clearSite() {
+            if (confirm('Очистить всё?')) {
+                siteElements = [];
+                saveSite();
+                renderSite();
+            }
+        }
+        
+        function applyStyles() {
+            const bg = document.getElementById('bgColor')?.value;
+            const color = document.getElementById('textColor')?.value;
+            if (bg) localStorage.setItem('bgColor', bg);
+            if (color) localStorage.setItem('textColor', color);
+            renderSite();
+        }
+        
+        function enterEditor() {
+            isEditorMode = true;
+            document.getElementById('editorBtn').style.display = 'none';
+            document.getElementById('exitEditorBtn').style.display = 'block';
+            document.getElementById('editorPanel').classList.remove('hidden');
+            renderSite();
+        }
+        
+        function exitEditor() {
+            isEditorMode = false;
+            document.getElementById('editorBtn').style.display = 'block';
+            document.getElementById('exitEditorBtn').style.display = 'none';
+            document.getElementById('editorPanel').classList.add('hidden');
+            renderSite();
+        }
+        
+        // ========== ЖИВЫЕ МЫШКИ ЧЕРЕЗ FIREBASE ==========
+        let cursorsRef = database.ref('cursors');
+        let onlineCount = 0;
+        
+        // Отправляем свою позицию
+        function sendMousePosition(x, y) {
+            const myCursorRef = database.ref('cursors/' + myId);
+            myCursorRef.set({
+                x: x,
+                y: y,
+                name: myName,
+                timestamp: Date.now()
+            });
+        }
+        
+        // Удаляем себя при выходе
+        function removeMyCursor() {
+            database.ref('cursors/' + myId).remove();
+        }
+        
+        // Слушаем чужие мышки
+        function listenCursors() {
+            cursorsRef.on('value', (snapshot) => {
+                const cursors = snapshot.val() || {};
+                const container = document.getElementById('pageContent').parentNode;
+                
+                // Удаляем старые чужие мышки
+                document.querySelectorAll('.remote-cursor').forEach(el => el.remove());
+                
+                let count = 0;
+                for (let id in cursors) {
+                    if (id === myId) continue;
+                    count++;
+                    const cursor = cursors[id];
+                    const colors = ['#ff0000', '#00ff00', '#0066ff', '#ffaa00', '#ff00ff', '#00cccc'];
+                    const colorIndex = (id.charCodeAt(0) || 0) % colors.length;
+                    
+                    const cursorDiv = document.createElement('div');
+                    cursorDiv.className = 'remote-cursor';
+                    cursorDiv.style.left = cursor.x + 'px';
+                    cursorDiv.style.top = cursor.y + 'px';
+                    cursorDiv.style.border = `2px solid ${colors[colorIndex]}`;
+                    cursorDiv.style.background = `${colors[colorIndex]}33`;
+                    cursorDiv.innerHTML = `<div class="cursor-name">${cursor.name || '???'}</div>`;
+                    document.body.appendChild(cursorDiv);
+                }
+                
+                // Обновляем счётчик онлайн
+                document.getElementById('onlineCount').innerHTML = `👥 ${count + 1} онлайн`;
+                
+                // Чистим старые курсоры (старше 5 секунд)
+                const now = Date.now();
+                for (let id in cursors) {
+                    if (cursors[id].timestamp && now - cursors[id].timestamp > 5000) {
+                        database.ref('cursors/' + id).remove();
+                    }
+                }
+            });
+        }
+        
+        // Слушаем изменения контента от других
+        function listenSiteChanges() {
+            database.ref('siteContent').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data && data.elements && !isEditorMode) {
+                    // Не обновляем если мы в режиме редактора (чтобы не конфликтовать)
+                    if (JSON.stringify(siteElements) !== JSON.stringify(data.elements)) {
+                        siteElements = data.elements;
+                        renderSite();
+                    }
+                }
+            });
+        }
+        
+        // Своя мышка
+        function initMyCursor() {
+            const cursor = document.getElementById('myCursor');
+            document.addEventListener('mousemove', (e) => {
+                cursor.style.left = (e.clientX - 12) + 'px';
+                cursor.style.top = (e.clientY - 12) + 'px';
+                sendMousePosition(e.clientX, e.clientY);
+            });
+            
+            document.addEventListener('mouseleave', removeMyCursor);
+            window.addEventListener('beforeunload', removeMyCursor);
+        }
+        
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSite();
+            initMyCursor();
+            listenCursors();
+            listenSiteChanges();
+            
+            // Отправляем "сердцебиение" чтобы не удалили
+            setInterval(() => {
+                if (myId) {
+                    database.ref('cursors/' + myId).update({ timestamp: Date.now() });
+                }
+            }, 3000);
+            
+            document.getElementById('editorBtn').onclick = enterEditor;
+            document.getElementById('exitEditorBtn').onclick = exitEditor;
+            document.getElementById('closeEditorBtn').onclick = exitEditor;
+            document.getElementById('clearSiteBtn').onclick = clearSite;
+            
+            document.getElementById('addTextBtn').onclick = () => addElement('text');
+            document.getElementById('addTitleBtn').onclick = () => addElement('title');
+            document.getElementById('addButtonBtn').onclick = () => addElement('button');
+            document.getElementById('addImageBtn').onclick = () => addElement('image');
+            
+            document.getElementById('bgColor').onchange = applyStyles;
+            document.getElementById('textColor').onchange = applyStyles;
+        });
+    </script>
 </body>
 </html>
