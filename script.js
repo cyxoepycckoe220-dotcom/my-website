@@ -1,77 +1,93 @@
-// === ПОДКЛЮЧЕНИЕ К БЕСПЛАТНОМУ СЕРВЕРУ ДЛЯ МЫШЕК ===
-// Используем публичный WebSocket сервер (бесплатно, не требует регистрации)
-const SOCKET_URL = 'wss://socketsbay.com/wss/v2/1/sitemaker';
+// ========== ИНИЦИАЛИЗАЦИЯ FIREBASE ==========
+// ВСТАВЬ СВОИ КЛЮЧИ СЮДА! (из Firebase Console)
+const firebaseConfig = {
+    apiKey: "ТВОЙ_API_KEY",
+    authDomain: "ТВОЙ_ПРОЕКТ.firebaseapp.com",
+    databaseURL: "https://ТВОЙ_ПРОЕКТ-default-rtdb.firebaseio.com",
+    projectId: "ТВОЙ_ПРОЕКТ",
+    storageBucket: "ТВОЙ_ПРОЕКТ.firebasestorage.app",
+    messagingSenderId: "ТВОЙ_SENDER_ID",
+    appId: "ТВОЙ_APP_ID"
+};
 
-let socket = null;
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+
+// ========== ОСНОВНЫЕ ПЕРЕМЕННЫЕ ==========
 let myId = Math.random().toString(36).substr(2, 8);
-let myName = 'User_' + myId.substr(0, 4);
-let remoteCursors = {};
-
-// === ОСТАЛЬНЫЕ ПЕРЕМЕННЫЕ ===
-let siteElements = [];
+let myName = prompt('Введи своё имя:', 'User_' + myId.substr(0, 4)) || 'Guest';
 let isEditorMode = false;
+let siteElements = [];
 
-// === ЗАГРУЗКА САЙТА (localStorage) ===
+// ========== ЗАГРУЗКА И СОХРАНЕНИЕ ==========
 function loadSite() {
     const saved = localStorage.getItem('sitemaker_site');
     if (saved) {
         siteElements = JSON.parse(saved);
     } else {
         siteElements = [
-            { id: 'title1', type: 'title', content: '✨ SiteMaker', link: '', styles: {} },
-            { id: 'text1', type: 'text', content: 'Создай свой сайт вместе с друзьями! Ты видишь их мышки? 🖱️', link: '', styles: {} },
-            { id: 'btn1', type: 'button', content: 'Нажми меня', link: '#', styles: {} }
+            { id: '1', type: 'title', content: '✨ SiteMaker' },
+            { id: '2', type: 'text', content: 'Создай свой сайт вместе с друзьями! Ты видишь их мышки? 🖱️' },
+            { id: '3', type: 'button', content: 'Нажми меня', link: '#' }
         ];
     }
     renderSite();
+    applyLiveStylesAndScripts(); // применить CSS/JS после загрузки
 }
 
 function saveSite() {
     localStorage.setItem('sitemaker_site', JSON.stringify(siteElements));
-    broadcastUpdate();
+    database.ref('siteContent').set({ elements: siteElements });
 }
 
-function broadcastUpdate() {
-    const channel = new BroadcastChannel('sitemaker');
-    channel.postMessage({ type: 'UPDATE', elements: siteElements });
+// Применить все CSS и JS блоки на странице
+function applyLiveStylesAndScripts() {
+    // Удаляем старые динамические стили/скрипты
+    document.querySelectorAll('.dynamic-style, .dynamic-script').forEach(el => el.remove());
+    
+    siteElements.forEach(element => {
+        if (element.type === 'css' && element.content) {
+            const style = document.createElement('style');
+            style.className = 'dynamic-style';
+            style.textContent = element.content;
+            document.head.appendChild(style);
+        } else if (element.type === 'js' && element.content) {
+            const script = document.createElement('script');
+            script.className = 'dynamic-script';
+            script.textContent = element.content;
+            document.body.appendChild(script);
+        }
+    });
 }
 
-const channel = new BroadcastChannel('sitemaker');
-channel.onmessage = (event) => {
-    if (event.data.type === 'UPDATE') {
-        siteElements = event.data.elements;
-        renderSite();
-    }
-};
-
-// === РЕНДЕР САЙТА ===
+// ========== ОТОБРАЖЕНИЕ САЙТА ==========
 function renderSite() {
     const container = document.getElementById('pageContent');
     if (!container) return;
     
-    const bgColor = localStorage.getItem('sitemaker_bgColor') || '#f5f5f5';
-    const textColor = localStorage.getItem('sitemaker_textColor') || '#000000';
-    const fontFamily = localStorage.getItem('sitemaker_fontFamily') || 'system-ui';
+    const bgColor = localStorage.getItem('bgColor') || '#f5f5f5';
+    const textColor = localStorage.getItem('textColor') || '#000000';
     document.body.style.backgroundColor = bgColor;
     document.body.style.color = textColor;
-    document.body.style.fontFamily = fontFamily;
     
     container.innerHTML = '';
     
     siteElements.forEach(element => {
-        const elementDiv = document.createElement('div');
-        elementDiv.className = 'editable-element';
-        elementDiv.dataset.id = element.id;
+        const div = document.createElement('div');
+        div.className = 'editable-element';
+        div.dataset.id = element.id;
         
         if (element.type === 'title') {
             const h = document.createElement('h1');
             h.textContent = element.content;
-            elementDiv.appendChild(h);
-        } else if (element.type === 'text') {
+            div.appendChild(h);
+        } 
+        else if (element.type === 'text') {
             const p = document.createElement('p');
             p.textContent = element.content;
-            elementDiv.appendChild(p);
-        } else if (element.type === 'button') {
+            div.appendChild(p);
+        } 
+        else if (element.type === 'button') {
             const btn = document.createElement('button');
             btn.textContent = element.content;
             btn.style.padding = '10px 20px';
@@ -83,17 +99,31 @@ function renderSite() {
             if (element.link && element.link !== '#') {
                 btn.onclick = () => window.open(element.link, '_blank');
             }
-            elementDiv.appendChild(btn);
-        } else if (element.type === 'image') {
+            div.appendChild(btn);
+        } 
+        else if (element.type === 'image') {
             const img = document.createElement('img');
             img.src = element.content;
             img.style.maxWidth = '100%';
             img.style.borderRadius = '12px';
-            elementDiv.appendChild(img);
-        } else if (element.type === 'html') {
-            const div = document.createElement('div');
-            div.innerHTML = element.content;
-            elementDiv.appendChild(div);
+            div.appendChild(img);
+        }
+        else if (element.type === 'html') {
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = element.content;
+            div.appendChild(wrapper);
+        }
+        else if (element.type === 'css') {
+            const pre = document.createElement('pre');
+            pre.className = 'code-block';
+            pre.textContent = element.content || '/* Твой CSS код */';
+            div.appendChild(pre);
+        }
+        else if (element.type === 'js') {
+            const pre = document.createElement('pre');
+            pre.className = 'code-block';
+            pre.textContent = element.content || '// Твой JavaScript код';
+            div.appendChild(pre);
         }
         
         if (isEditorMode) {
@@ -103,30 +133,77 @@ function renderSite() {
                 <button onclick="editElement('${element.id}')">✏️</button>
                 <button class="delete-element" onclick="deleteElement('${element.id}')">🗑️</button>
             `;
-            elementDiv.appendChild(controls);
+            div.appendChild(controls);
         }
         
-        container.appendChild(elementDiv);
+        container.appendChild(div);
     });
     
     if (siteElements.length === 0 && !isEditorMode) {
         container.innerHTML = `<div class="welcome-message"><h1>✨ SiteMaker</h1><p>Нажми "Редактор" чтобы начать!</p></div>`;
     }
+    
+    // После отрисовки применяем CSS/JS блоки
+    applyLiveStylesAndScripts();
 }
 
-// === УПРАВЛЕНИЕ ЭЛЕМЕНТАМИ ===
+// ========== РЕДАКТИРОВАНИЕ ЭЛЕМЕНТОВ ==========
+window.editElement = function(id) {
+    const el = siteElements.find(e => e.id === id);
+    if (!el) return;
+    
+    let newContent = '';
+    if (el.type === 'title' || el.type === 'text') {
+        newContent = prompt('Редактировать текст:', el.content);
+    } 
+    else if (el.type === 'button') {
+        newContent = prompt('Текст кнопки:', el.content);
+        let newLink = prompt('Ссылка:', el.link || '#');
+        if (newLink) el.link = newLink;
+    }
+    else if (el.type === 'image') {
+        newContent = prompt('URL картинки:', el.content);
+    }
+    else if (el.type === 'html') {
+        newContent = prompt('Введите HTML код:', el.content);
+    }
+    else if (el.type === 'css') {
+        newContent = prompt('Введите CSS стили:', el.content);
+    }
+    else if (el.type === 'js') {
+        newContent = prompt('Введите JavaScript код:', el.content);
+    }
+    
+    if (newContent !== undefined && newContent !== null) el.content = newContent;
+    saveSite();
+    renderSite();
+};
+
+window.deleteElement = function(id) {
+    if (confirm('Удалить элемент?')) {
+        siteElements = siteElements.filter(e => e.id !== id);
+        saveSite();
+        renderSite();
+    }
+};
+
+// ========== ДОБАВЛЕНИЕ НОВЫХ БЛОКОВ ==========
 function addElement(type) {
     let content = '';
-    let link = '';
+    let link = '#';
     
-    if (type === 'title') content = prompt('Заголовок:', 'Новый заголовок');
-    else if (type === 'text') content = prompt('Текст:', 'Новый текст');
-    else if (type === 'button') {
-        content = prompt('Текст кнопки:', 'Нажми меня');
-        link = prompt('Ссылка:', '#');
+    switch(type) {
+        case 'title': content = prompt('Заголовок:', 'Новый заголовок'); break;
+        case 'text': content = prompt('Текст:', 'Новый текст'); break;
+        case 'button': 
+            content = prompt('Текст кнопки:', 'Нажми меня');
+            link = prompt('Ссылка:', '#');
+            break;
+        case 'image': content = prompt('URL картинки:', 'https://picsum.photos/300/200'); break;
+        case 'html': content = prompt('Введите HTML код:', '<div style="padding:20px;background:#f0f0f0;">Привет, мир!</div>'); break;
+        case 'css': content = prompt('Введите CSS стили:', 'body { background: lightblue; }'); break;
+        case 'js': content = prompt('Введите JavaScript код:', 'alert("Привет от SiteMaker!");'); break;
     }
-    else if (type === 'image') content = prompt('URL картинки:', 'https://picsum.photos/300/200');
-    else if (type === 'html') content = prompt('HTML код:', '<div>Мой блок</div>');
     
     if (!content && type !== 'html') return;
     
@@ -134,36 +211,14 @@ function addElement(type) {
         id: Date.now() + '_' + Math.random(),
         type: type,
         content: content || '',
-        link: link || '#',
-        styles: {}
+        link: link
     });
     saveSite();
     renderSite();
 }
 
-window.editElement = function(id) {
-    const el = siteElements.find(e => e.id === id);
-    if (!el) return;
-    let newContent = prompt('Редактировать:', el.content);
-    if (newContent) el.content = newContent;
-    if (el.type === 'button') {
-        let newLink = prompt('Ссылка:', el.link || '#');
-        if (newLink) el.link = newLink;
-    }
-    saveSite();
-    renderSite();
-};
-
-window.deleteElement = function(id) {
-    if (confirm('Удалить?')) {
-        siteElements = siteElements.filter(e => e.id !== id);
-        saveSite();
-        renderSite();
-    }
-};
-
 function clearSite() {
-    if (confirm('Очистить всё?')) {
+    if (confirm('Очистить весь сайт? Все элементы будут удалены!')) {
         siteElements = [];
         saveSite();
         renderSite();
@@ -173,14 +228,12 @@ function clearSite() {
 function applyStyles() {
     const bg = document.getElementById('bgColor')?.value;
     const color = document.getElementById('textColor')?.value;
-    const font = document.getElementById('fontFamily')?.value;
-    if (bg) localStorage.setItem('sitemaker_bgColor', bg);
-    if (color) localStorage.setItem('sitemaker_textColor', color);
-    if (font) localStorage.setItem('sitemaker_fontFamily', font);
+    if (bg) localStorage.setItem('bgColor', bg);
+    if (color) localStorage.setItem('textColor', color);
     renderSite();
 }
 
-// === РЕЖИМ РЕДАКТОРА ===
+// ========== РЕЖИМ РЕДАКТОРА ==========
 function enterEditor() {
     isEditorMode = true;
     document.getElementById('editorBtn').style.display = 'none';
@@ -197,121 +250,72 @@ function exitEditor() {
     renderSite();
 }
 
-// === ЖИВЫЕ МЫШКИ (WebSocket) ===
-function initWebSocket() {
-    try {
-        socket = new WebSocket(SOCKET_URL);
-        
-        socket.onopen = () => {
-            console.log('🟢 Подключено к серверу мышек');
-            // Отправляем приветствие
-            socket.send(JSON.stringify({
-                type: 'join',
-                id: myId,
-                name: myName
-            }));
-        };
-        
-        socket.onmessage = (event) => {
-            try {
-                const data = JSON.parse(event.data);
-                
-                if (data.type === 'join') {
-                    // Добавляем новую мышку
-                    if (!remoteCursors[data.id] && data.id !== myId) {
-                        remoteCursors[data.id] = {
-                            id: data.id,
-                            name: data.name,
-                            x: 0,
-                            y: 0
-                        };
-                        renderRemoteCursors();
-                    }
-                }
-                else if (data.type === 'move') {
-                    // Обновляем позицию мышки
-                    if (remoteCursors[data.id]) {
-                        remoteCursors[data.id].x = data.x;
-                        remoteCursors[data.id].y = data.y;
-                        renderRemoteCursors();
-                    }
-                }
-                else if (data.type === 'leave') {
-                    // Удаляем мышку
-                    delete remoteCursors[data.id];
-                    renderRemoteCursors();
-                }
-            } catch(e) {}
-        };
-        
-        socket.onclose = () => {
-            console.log('🔴 Отключено от сервера');
-            setTimeout(initWebSocket, 3000);
-        };
-        
-        socket.onerror = () => {
-            console.log('⚠️ Ошибка подключения');
-        };
-    } catch(e) {
-        console.log('WebSocket не поддерживается');
-    }
+// ========== ЖИВЫЕ МЫШКИ (Firebase) ==========
+let cursorsRef = database.ref('cursors');
+
+function sendMousePosition(x, y) {
+    database.ref('cursors/' + myId).set({
+        x: x, y: y, name: myName, timestamp: Date.now()
+    });
 }
 
-// Отправляем движение мышки
-function sendMouseMove(x, y) {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({
-            type: 'move',
-            id: myId,
-            x: x,
-            y: y
-        }));
-    }
+function removeMyCursor() {
+    database.ref('cursors/' + myId).remove();
 }
 
-// Отправляем уход
-function sendLeave() {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({
-            type: 'leave',
-            id: myId
-        }));
-    }
-}
-
-// Рендер чужих мышек на экране
-function renderRemoteCursors() {
-    const container = document.getElementById('remoteCursorsContainer');
-    if (!container) return;
-    
-    container.innerHTML = '';
-    
-    for (let id in remoteCursors) {
-        const cursor = remoteCursors[id];
-        const cursorDiv = document.createElement('div');
-        cursorDiv.className = 'remote-cursor';
-        cursorDiv.style.left = cursor.x + 'px';
-        cursorDiv.style.top = cursor.y + 'px';
+function listenCursors() {
+    cursorsRef.on('value', (snapshot) => {
+        const cursors = snapshot.val() || {};
+        document.querySelectorAll('.remote-cursor').forEach(el => el.remove());
         
-        // Случайный цвет для каждого пользователя
-        const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffaa00', '#ff00ff', '#00ffff'];
-        const colorIndex = (id.charCodeAt(0) || 0) % colors.length;
-        cursorDiv.style.border = `2px solid ${colors[colorIndex]}`;
-        cursorDiv.style.background = `${colors[colorIndex]}33`;
+        let count = 0;
+        for (let id in cursors) {
+            if (id === myId) continue;
+            count++;
+            const cursor = cursors[id];
+            const colors = ['#ff0000', '#00ff00', '#0066ff', '#ffaa00', '#ff00ff', '#00cccc'];
+            const colorIndex = (id.charCodeAt(0) || 0) % colors.length;
+            
+            const cursorDiv = document.createElement('div');
+            cursorDiv.className = 'remote-cursor';
+            cursorDiv.style.left = cursor.x + 'px';
+            cursorDiv.style.top = cursor.y + 'px';
+            cursorDiv.style.border = `2px solid ${colors[colorIndex]}`;
+            cursorDiv.style.background = `${colors[colorIndex]}33`;
+            cursorDiv.innerHTML = `<div class="cursor-name">${escapeHtml(cursor.name || '???')}</div>`;
+            document.body.appendChild(cursorDiv);
+        }
         
-        cursorDiv.innerHTML = `<div class="cursor-name">${cursor.name}</div>`;
-        container.appendChild(cursorDiv);
-    }
-    
-    // Обновляем счётчик онлайн
-    const countBtn = document.getElementById('onlineCount');
-    if (countBtn) {
-        const onlineCount = Object.keys(remoteCursors).length + 1;
-        countBtn.innerHTML = `👥 ${onlineCount} онлайн`;
-    }
+        document.getElementById('onlineCount').innerHTML = `👥 ${count + 1} онлайн`;
+        
+        const now = Date.now();
+        for (let id in cursors) {
+            if (cursors[id].timestamp && now - cursors[id].timestamp > 5000) {
+                database.ref('cursors/' + id).remove();
+            }
+        }
+    });
 }
 
-// === СВОЯ МЫШКА ===
+function listenSiteChanges() {
+    database.ref('siteContent').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data && data.elements && !isEditorMode) {
+            if (JSON.stringify(siteElements) !== JSON.stringify(data.elements)) {
+                siteElements = data.elements;
+                renderSite();
+            }
+        }
+    });
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 function initMyCursor() {
     const cursor = document.getElementById('myCursor');
     if (!cursor) return;
@@ -319,48 +323,39 @@ function initMyCursor() {
     document.addEventListener('mousemove', (e) => {
         cursor.style.left = (e.clientX - 12) + 'px';
         cursor.style.top = (e.clientY - 12) + 'px';
-        sendMouseMove(e.clientX, e.clientY);
+        sendMousePosition(e.clientX, e.clientY);
     });
     
-    document.addEventListener('mouseleave', () => {
-        sendLeave();
-    });
+    document.addEventListener('mouseleave', removeMyCursor);
+    window.addEventListener('beforeunload', removeMyCursor);
 }
 
-// === ЗАПРОС ИМЕНИ ПОЛЬЗОВАТЕЛЯ ===
-function askUserName() {
-    const name = prompt('Введи своё имя (будут видеть другие):', myName);
-    if (name && name.trim()) {
-        myName = name.trim();
-    }
-}
-
-// === ИНИЦИАЛИЗАЦИЯ ===
+// ========== ЗАПУСК ==========
 document.addEventListener('DOMContentLoaded', () => {
-    askUserName();
     loadSite();
     initMyCursor();
-    initWebSocket();
+    listenCursors();
+    listenSiteChanges();
     
-    // Кнопки
-    document.getElementById('editorBtn')?.addEventListener('click', enterEditor);
-    document.getElementById('exitEditorBtn')?.addEventListener('click', exitEditor);
-    document.getElementById('closeEditorBtn')?.addEventListener('click', exitEditor);
-    document.getElementById('clearSiteBtn')?.addEventListener('click', clearSite);
-    document.getElementById('saveSiteBtn')?.addEventListener('click', saveSite);
+    setInterval(() => {
+        if (myId) {
+            database.ref('cursors/' + myId).update({ timestamp: Date.now() });
+        }
+    }, 3000);
     
-    document.getElementById('addTextBtn')?.addEventListener('click', () => addElement('text'));
-    document.getElementById('addTitleBtn')?.addEventListener('click', () => addElement('title'));
-    document.getElementById('addButtonBtn')?.addEventListener('click', () => addElement('button'));
-    document.getElementById('addImageBtn')?.addEventListener('click', () => addElement('image'));
-    document.getElementById('addHtmlBtn')?.addEventListener('click', () => addElement('html'));
+    document.getElementById('editorBtn').onclick = enterEditor;
+    document.getElementById('exitEditorBtn').onclick = exitEditor;
+    document.getElementById('closeEditorBtn').onclick = exitEditor;
+    document.getElementById('clearSiteBtn').onclick = clearSite;
     
-    document.getElementById('bgColor')?.addEventListener('change', applyStyles);
-    document.getElementById('textColor')?.addEventListener('change', applyStyles);
-    document.getElementById('fontFamily')?.addEventListener('change', applyStyles);
-});
-
-// При закрытии страницы
-window.addEventListener('beforeunload', () => {
-    sendLeave();
+    document.getElementById('addTextBtn').onclick = () => addElement('text');
+    document.getElementById('addTitleBtn').onclick = () => addElement('title');
+    document.getElementById('addButtonBtn').onclick = () => addElement('button');
+    document.getElementById('addImageBtn').onclick = () => addElement('image');
+    document.getElementById('addHtmlBtn').onclick = () => addElement('html');
+    document.getElementById('addCssBtn').onclick = () => addElement('css');
+    document.getElementById('addJsBtn').onclick = () => addElement('js');
+    
+    document.getElementById('bgColor').onchange = applyStyles;
+    document.getElementById('textColor').onchange = applyStyles;
 });

@@ -2,34 +2,79 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SiteMaker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>SiteMaker — создай свой сайт онлайн</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: system-ui; background: #f5f5f5; min-height: 100vh; cursor: none; }
-        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+            cursor: none;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        /* Тёмная тема */
+        body.dark-theme {
+            background: #1a1a1a;
+            color: #ffffff;
+        }
+
+        body.dark-theme .toolbar {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        }
+
+        body.dark-theme .editor-panel {
+            background: #2a2a2a;
+            color: white;
+        }
+
+        body.dark-theme .tool-group {
+            border-bottom-color: #444;
+        }
+
+        body.dark-theme .tool-btn {
+            background: #3a3a3a;
+            color: white;
+        }
+
+        body.dark-theme .welcome-message {
+            background: #2a2a2a;
+        }
+
+        body.dark-theme .editable-element:hover {
+            background: rgba(255,255,255,0.05);
+        }
+
         /* Своя мышка */
         .my-cursor {
-            width: 24px; height: 24px;
+            width: 24px;
+            height: 24px;
             border: 2px solid #ff0000;
             border-radius: 50%;
             position: fixed;
             pointer-events: none;
             z-index: 9999;
             background: rgba(255,0,0,0.3);
-            transition: 0.02s linear;
+            transition: 0.05s linear;
         }
-        
+
         /* Чужие мышки */
         .remote-cursor {
             position: fixed;
-            width: 20px; height: 20px;
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
             pointer-events: none;
             z-index: 9998;
-            transition: 0.02s linear;
+            transition: 0.05s linear;
         }
-        
+
         .cursor-name {
             position: absolute;
             top: -22px;
@@ -41,7 +86,8 @@
             border-radius: 12px;
             white-space: nowrap;
         }
-        
+
+        /* Панель инструментов */
         .toolbar {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -52,76 +98,147 @@
             position: sticky;
             top: 0;
             z-index: 100;
+            flex-wrap: wrap;
+            gap: 10px;
         }
-        
-        .logo { font-size: 24px; font-weight: bold; }
-        
-        .toolbar-buttons { display: flex; gap: 15px; }
-        
-        .editor-btn, .exit-btn, .online-btn {
-            padding: 8px 20px;
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo:active {
+            transform: scale(0.98);
+        }
+
+        .toolbar-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .editor-btn, .exit-btn, .online-btn, .theme-btn, .export-btn {
+            padding: 8px 16px;
             border-radius: 30px;
             border: none;
             cursor: pointer;
             font-weight: bold;
+            transition: transform 0.2s;
         }
-        
+
+        .editor-btn:active, .exit-btn:active, .theme-btn:active, .export-btn:active {
+            transform: scale(0.95);
+        }
+
         .editor-btn { background: white; color: #667eea; }
         .exit-btn { background: #ff4757; color: white; display: none; }
-        .online-btn { background: rgba(255,255,255,0.2); color: white; }
-        
+        .online-btn { background: rgba(255,255,255,0.2); color: white; cursor: default; }
+        .theme-btn { background: rgba(255,255,255,0.3); color: white; }
+        .export-btn { background: #28a745; color: white; }
+
+        /* Контент страницы */
         .page-content {
             max-width: 1200px;
             margin: 0 auto;
             padding: 40px 20px;
             min-height: calc(100vh - 70px);
         }
-        
+
+        /* Редактируемые элементы с анимацией */
         .editable-element {
             position: relative;
             margin: 10px 0;
             padding: 10px;
-            border-radius: 8px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.4s ease;
         }
-        
-        .editable-element:hover { outline: 2px dashed #667eea; background: rgba(102,126,234,0.05); }
-        
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .editable-element:hover {
+            outline: 2px dashed #667eea;
+            background: rgba(102,126,234,0.05);
+        }
+
+        /* Кнопки управления элементом */
         .element-controls {
             position: absolute;
-            top: -30px;
+            top: -35px;
             right: 0;
             display: flex;
-            gap: 5px;
+            gap: 8px;
             opacity: 0;
+            transition: opacity 0.2s;
+            background: white;
+            padding: 5px 10px;
+            border-radius: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        
-        .editable-element:hover .element-controls { opacity: 1; }
-        
+
+        body.dark-theme .element-controls {
+            background: #3a3a3a;
+        }
+
+        .editable-element:hover .element-controls {
+            opacity: 1;
+        }
+
         .element-controls button {
             background: #667eea;
             color: white;
             border: none;
-            padding: 4px 8px;
-            border-radius: 4px;
+            padding: 6px 12px;
+            border-radius: 20px;
             cursor: pointer;
+            font-size: 12px;
+            transition: background 0.2s;
         }
-        
-        .element-controls .delete-element { background: #ff4757; }
-        
+
+        .element-controls button:hover {
+            background: #5a6fd6;
+        }
+
+        .element-controls .delete-element {
+            background: #ff4757;
+        }
+
+        .element-controls .delete-element:hover {
+            background: #e04350;
+        }
+
+        /* Панель редактора */
         .editor-panel {
             position: fixed;
             right: 0;
             top: 70px;
-            width: 320px;
+            width: 350px;
             background: white;
-            border-radius: 16px 0 0 16px;
-            box-shadow: -4px 4px 20px rgba(0,0,0,0.15);
+            border-radius: 20px 0 0 20px;
+            box-shadow: -4px 4px 30px rgba(0,0,0,0.2);
             z-index: 200;
-            transition: transform 0.3s;
+            transition: transform 0.3s ease;
+            max-height: calc(100vh - 70px);
+            overflow-y: auto;
         }
-        
-        .editor-panel.hidden { transform: translateX(100%); }
-        
+
+        .editor-panel.hidden {
+            transform: translateX(100%);
+        }
+
         .editor-header {
             display: flex;
             justify-content: space-between;
@@ -129,64 +246,166 @@
             padding: 15px 20px;
             background: #667eea;
             color: white;
-            border-radius: 16px 0 0 0;
+            border-radius: 20px 0 0 0;
+            position: sticky;
+            top: 0;
         }
-        
+
         .close-editor {
             background: none;
             border: none;
             color: white;
-            font-size: 20px;
+            font-size: 24px;
             cursor: pointer;
         }
-        
-        .editor-tools { padding: 20px; max-height: calc(100vh - 140px); overflow-y: auto; }
-        
-        .tool-group { margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
-        
-        .tool-group h4 { margin-bottom: 12px; }
-        
-        .tool-group label { display: block; margin: 10px 0 5px; font-size: 12px; color: #666; }
-        
-        .tool-group input, .tool-group select {
-            width: 100%;
-            padding: 8px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
+
+        .editor-tools {
+            padding: 20px;
         }
-        
+
+        .tool-group {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .tool-group h4 {
+            margin-bottom: 12px;
+            color: #667eea;
+        }
+
+        body.dark-theme .tool-group h4 {
+            color: #8b9eff;
+        }
+
+        .tool-group label {
+            display: block;
+            margin: 10px 0 5px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        body.dark-theme .tool-group label {
+            color: #aaa;
+        }
+
+        .tool-group input,
+        .tool-group select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+        }
+
+        body.dark-theme .tool-group input,
+        body.dark-theme .tool-group select {
+            background: #3a3a3a;
+            border-color: #555;
+            color: white;
+        }
+
         .tool-btn {
             display: inline-block;
             margin: 5px;
             padding: 8px 16px;
             background: #f0f0f0;
             border: none;
-            border-radius: 20px;
+            border-radius: 25px;
             cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
         }
-        
-        .tool-btn.danger { background: #ff4757; color: white; }
-        .tool-btn.success { background: #28a745; color: white; }
-        
+
+        .tool-btn:active {
+            transform: scale(0.95);
+        }
+
+        .tool-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .tool-btn.danger {
+            background: #ff4757;
+            color: white;
+        }
+
+        .tool-btn.success {
+            background: #28a745;
+            color: white;
+        }
+
         .welcome-message {
             text-align: center;
             padding: 60px;
             background: white;
             border-radius: 20px;
+            animation: fadeInUp 0.5s ease;
         }
-        
+
+        /* Блоки кода */
+        .code-block {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            padding: 15px;
+            border-radius: 12px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin: 10px 0;
+            border-left: 4px solid #667eea;
+        }
+
+        /* Адаптив */
         @media (max-width: 768px) {
-            .editor-panel { width: 100%; top: auto; bottom: 0; border-radius: 16px 16px 0 0; max-height: 60vh; }
-            .toolbar { flex-direction: column; gap: 10px; }
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .toolbar-buttons {
+                justify-content: center;
+            }
+
+            .editor-panel {
+                width: 100%;
+                top: auto;
+                bottom: 0;
+                border-radius: 20px 20px 0 0;
+                max-height: 60vh;
+            }
+
+            .page-content {
+                padding: 20px 15px;
+            }
+
+            .welcome-message {
+                padding: 30px;
+            }
+        }
+
+        /* Drag and drop */
+        .dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+        }
+
+        .drag-over {
+            border: 2px dashed #667eea;
+            background: rgba(102,126,234,0.1);
         }
     </style>
 </head>
 <body>
     <div class="toolbar">
-        <div class="logo">✨ SiteMaker</div>
+        <div class="logo" id="logo">✨ SiteMaker</div>
         <div class="toolbar-buttons">
+            <button id="themeBtn" class="theme-btn">🌙 Тёмная тема</button>
+            <button id="exportBtn" class="export-btn">💾 Экспорт</button>
             <button id="editorBtn" class="editor-btn">✏️ Редактор</button>
-            <button id="exitEditorBtn" class="exit-btn">🔒 Выйти из редактора</button>
+            <button id="exitEditorBtn" class="exit-btn">🔒 Выйти</button>
             <button id="onlineCount" class="online-btn">👥 0 онлайн</button>
         </div>
     </div>
@@ -196,6 +415,7 @@
             <h1>✨ Добро пожаловать в SiteMaker!</h1>
             <p>Нажми на кнопку "Редактор", чтобы начать создавать свой сайт</p>
             <p>Все изменения видны всем онлайн! А ещё ты видишь мышки других людей 🖱️</p>
+            <p style="margin-top: 20px; font-size: 14px;">💡 Подсказка: перетаскивай блоки мышкой, чтобы менять порядок</p>
         </div>
     </div>
 
@@ -207,8 +427,8 @@
         <div class="editor-tools">
             <div class="tool-group">
                 <h4>➕ Добавить блок</h4>
-                <button id="addTextBtn" class="tool-btn">📝 Текст</button>
                 <button id="addTitleBtn" class="tool-btn">📌 Заголовок</button>
+                <button id="addTextBtn" class="tool-btn">📝 Текст</button>
                 <button id="addButtonBtn" class="tool-btn">🔘 Кнопка</button>
                 <button id="addImageBtn" class="tool-btn">🖼️ Картинка</button>
             </div>
@@ -222,254 +442,19 @@
             <div class="tool-group">
                 <h4>⚡ Управление</h4>
                 <button id="clearSiteBtn" class="tool-btn danger">🗑️ Очистить сайт</button>
+                <button id="importBtn" class="tool-btn success" style="margin-top: 10px;">📂 Импорт из файла</button>
+                <input type="file" id="importFile" accept=".json" style="display: none;">
             </div>
         </div>
     </div>
 
     <div id="myCursor" class="my-cursor"></div>
 
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     
     <script>
-        // ========== ВСТАВЬ СВОИ КЛЮЧИ ИЗ FIREBASE ==========
-        <!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SiteMaker</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: system-ui; background: #f5f5f5; min-height: 100vh; cursor: none; }
-        
-        /* Своя мышка */
-        .my-cursor {
-            width: 24px; height: 24px;
-            border: 2px solid #ff0000;
-            border-radius: 50%;
-            position: fixed;
-            pointer-events: none;
-            z-index: 9999;
-            background: rgba(255,0,0,0.3);
-            transition: 0.02s linear;
-        }
-        
-        /* Чужие мышки */
-        .remote-cursor {
-            position: fixed;
-            width: 20px; height: 20px;
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 9998;
-            transition: 0.02s linear;
-        }
-        
-        .cursor-name {
-            position: absolute;
-            top: -22px;
-            left: -10px;
-            background: rgba(0,0,0,0.8);
-            color: white;
-            font-size: 10px;
-            padding: 2px 6px;
-            border-radius: 12px;
-            white-space: nowrap;
-        }
-        
-        .toolbar {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        
-        .logo { font-size: 24px; font-weight: bold; }
-        
-        .toolbar-buttons { display: flex; gap: 15px; }
-        
-        .editor-btn, .exit-btn, .online-btn {
-            padding: 8px 20px;
-            border-radius: 30px;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        
-        .editor-btn { background: white; color: #667eea; }
-        .exit-btn { background: #ff4757; color: white; display: none; }
-        .online-btn { background: rgba(255,255,255,0.2); color: white; }
-        
-        .page-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 40px 20px;
-            min-height: calc(100vh - 70px);
-        }
-        
-        .editable-element {
-            position: relative;
-            margin: 10px 0;
-            padding: 10px;
-            border-radius: 8px;
-        }
-        
-        .editable-element:hover { outline: 2px dashed #667eea; background: rgba(102,126,234,0.05); }
-        
-        .element-controls {
-            position: absolute;
-            top: -30px;
-            right: 0;
-            display: flex;
-            gap: 5px;
-            opacity: 0;
-        }
-        
-        .editable-element:hover .element-controls { opacity: 1; }
-        
-        .element-controls button {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 4px 8px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        
-        .element-controls .delete-element { background: #ff4757; }
-        
-        .editor-panel {
-            position: fixed;
-            right: 0;
-            top: 70px;
-            width: 320px;
-            background: white;
-            border-radius: 16px 0 0 16px;
-            box-shadow: -4px 4px 20px rgba(0,0,0,0.15);
-            z-index: 200;
-            transition: transform 0.3s;
-        }
-        
-        .editor-panel.hidden { transform: translateX(100%); }
-        
-        .editor-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 20px;
-            background: #667eea;
-            color: white;
-            border-radius: 16px 0 0 0;
-        }
-        
-        .close-editor {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 20px;
-            cursor: pointer;
-        }
-        
-        .editor-tools { padding: 20px; max-height: calc(100vh - 140px); overflow-y: auto; }
-        
-        .tool-group { margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
-        
-        .tool-group h4 { margin-bottom: 12px; }
-        
-        .tool-group label { display: block; margin: 10px 0 5px; font-size: 12px; color: #666; }
-        
-        .tool-group input, .tool-group select {
-            width: 100%;
-            padding: 8px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-        }
-        
-        .tool-btn {
-            display: inline-block;
-            margin: 5px;
-            padding: 8px 16px;
-            background: #f0f0f0;
-            border: none;
-            border-radius: 20px;
-            cursor: pointer;
-        }
-        
-        .tool-btn.danger { background: #ff4757; color: white; }
-        .tool-btn.success { background: #28a745; color: white; }
-        
-        .welcome-message {
-            text-align: center;
-            padding: 60px;
-            background: white;
-            border-radius: 20px;
-        }
-        
-        @media (max-width: 768px) {
-            .editor-panel { width: 100%; top: auto; bottom: 0; border-radius: 16px 16px 0 0; max-height: 60vh; }
-            .toolbar { flex-direction: column; gap: 10px; }
-        }
-    </style>
-</head>
-<body>
-    <div class="toolbar">
-        <div class="logo">✨ SiteMaker</div>
-        <div class="toolbar-buttons">
-            <button id="editorBtn" class="editor-btn">✏️ Редактор</button>
-            <button id="exitEditorBtn" class="exit-btn">🔒 Выйти из редактора</button>
-            <button id="onlineCount" class="online-btn">👥 0 онлайн</button>
-        </div>
-    </div>
-
-    <div id="pageContent" class="page-content">
-        <div class="welcome-message">
-            <h1>✨ Добро пожаловать в SiteMaker!</h1>
-            <p>Нажми на кнопку "Редактор", чтобы начать создавать свой сайт</p>
-            <p>Все изменения видны всем онлайн! А ещё ты видишь мышки других людей 🖱️</p>
-        </div>
-    </div>
-
-    <div id="editorPanel" class="editor-panel hidden">
-        <div class="editor-header">
-            <h3>🎨 Редактор сайта</h3>
-            <button id="closeEditorBtn" class="close-editor">✖️</button>
-        </div>
-        <div class="editor-tools">
-            <div class="tool-group">
-                <h4>➕ Добавить блок</h4>
-                <button id="addTextBtn" class="tool-btn">📝 Текст</button>
-                <button id="addTitleBtn" class="tool-btn">📌 Заголовок</button>
-                <button id="addButtonBtn" class="tool-btn">🔘 Кнопка</button>
-                <button id="addImageBtn" class="tool-btn">🖼️ Картинка</button>
-            </div>
-            <div class="tool-group">
-                <h4>🎨 Стили</h4>
-                <label>Цвет фона:</label>
-                <input type="color" id="bgColor" value="#f5f5f5">
-                <label>Цвет текста:</label>
-                <input type="color" id="textColor" value="#000000">
-            </div>
-            <div class="tool-group">
-                <h4>⚡ Управление</h4>
-                <button id="clearSiteBtn" class="tool-btn danger">🗑️ Очистить сайт</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="myCursor" class="my-cursor"></div>
-
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
-    
-    <script>
-        // ========== ВСТАВЬ СВОИ КЛЮЧИ ИЗ FIREBASE ==========
+        // ========== FIREBASE КЛЮЧИ (ВСТАВЬ СВОИ) ==========
         const firebaseConfig = {
   apiKey: "AIzaSyCKod1JVM2fp6kbCHfYdbAFJgTOHg8Kzfk",
   authDomain: "sitemaker-c4226.firebaseapp.com",
@@ -479,17 +464,66 @@
   appId: "1:1044402198283:web:504fd7e7a4199eb8de340e"
 };
         
-        // Инициализация Firebase
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
         
-        // ========== ОСТАЛЬНОЙ КОД ==========
+        // ========== ОСНОВНЫЕ ПЕРЕМЕННЫЕ ==========
         let myId = Math.random().toString(36).substr(2, 8);
         let myName = prompt('Введи своё имя:', 'User_' + myId.substr(0, 4)) || 'Guest';
         let isEditorMode = false;
         let siteElements = [];
+        let dragSrcElement = null;
         
-        // Загрузка сайта
+        // ========== ТЁМНАЯ ТЕМА ==========
+        function initTheme() {
+            const savedTheme = localStorage.getItem('sitemaker_theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-theme');
+                document.getElementById('themeBtn').innerHTML = '☀️ Светлая тема';
+            }
+        }
+        
+        function toggleTheme() {
+            document.body.classList.toggle('dark-theme');
+            const isDark = document.body.classList.contains('dark-theme');
+            localStorage.setItem('sitemaker_theme', isDark ? 'dark' : 'light');
+            document.getElementById('themeBtn').innerHTML = isDark ? '☀️ Светлая тема' : '🌙 Тёмная тема';
+        }
+        
+        // ========== ЭКСПОРТ/ИМПОРТ ==========
+        function exportSite() {
+            const data = JSON.stringify(siteElements, null, 2);
+            const blob = new Blob([data], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `sitemaker_${new Date().toISOString().slice(0,19)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            alert('✅ Сайт сохранён в файл!');
+        }
+        
+        function importSite(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (Array.isArray(imported)) {
+                        siteElements = imported;
+                        saveSite();
+                        renderSite();
+                        alert('✅ Импорт выполнен!');
+                    } else {
+                        alert('❌ Неверный формат файла');
+                    }
+                } catch(err) {
+                    alert('❌ Ошибка при импорте');
+                }
+            };
+            reader.readAsText(file);
+        }
+        
+        // ========== ЗАГРУЗКА И СОХРАНЕНИЕ ==========
         function loadSite() {
             const saved = localStorage.getItem('sitemaker_site');
             if (saved) {
@@ -506,10 +540,66 @@
         
         function saveSite() {
             localStorage.setItem('sitemaker_site', JSON.stringify(siteElements));
-            // Сохраняем в Firebase чтобы другие видели
             database.ref('siteContent').set({ elements: siteElements });
         }
         
+        // ========== ПЕРЕТАСКИВАНИЕ БЛОКОВ ==========
+        function initDragAndDrop() {
+            const container = document.getElementById('pageContent');
+            
+            container.addEventListener('dragstart', (e) => {
+                if (!isEditorMode) return;
+                const el = e.target.closest('.editable-element');
+                if (!el) return;
+                dragSrcElement = el;
+                el.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+            });
+            
+            container.addEventListener('dragend', (e) => {
+                if (!isEditorMode) return;
+                const el = e.target.closest('.editable-element');
+                if (el) el.classList.remove('dragging');
+                dragSrcElement = null;
+                document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+            });
+            
+            container.addEventListener('dragover', (e) => {
+                if (!isEditorMode) return;
+                e.preventDefault();
+                const el = e.target.closest('.editable-element');
+                if (el && el !== dragSrcElement) {
+                    el.classList.add('drag-over');
+                }
+            });
+            
+            container.addEventListener('dragleave', (e) => {
+                const el = e.target.closest('.editable-element');
+                if (el) el.classList.remove('drag-over');
+            });
+            
+            container.addEventListener('drop', (e) => {
+                if (!isEditorMode) return;
+                e.preventDefault();
+                const targetEl = e.target.closest('.editable-element');
+                if (targetEl && dragSrcElement && targetEl !== dragSrcElement) {
+                    const srcId = dragSrcElement.dataset.id;
+                    const targetId = targetEl.dataset.id;
+                    const srcIndex = siteElements.findIndex(el => el.id === srcId);
+                    const targetIndex = siteElements.findIndex(el => el.id === targetId);
+                    
+                    if (srcIndex !== -1 && targetIndex !== -1) {
+                        const [movedElement] = siteElements.splice(srcIndex, 1);
+                        siteElements.splice(targetIndex, 0, movedElement);
+                        saveSite();
+                        renderSite();
+                    }
+                }
+                document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+            });
+        }
+        
+        // ========== ОТОБРАЖЕНИЕ САЙТА ==========
         function renderSite() {
             const container = document.getElementById('pageContent');
             if (!container) return;
@@ -525,6 +615,7 @@
                 const div = document.createElement('div');
                 div.className = 'editable-element';
                 div.dataset.id = element.id;
+                div.draggable = isEditorMode;
                 
                 if (element.type === 'title') {
                     const h = document.createElement('h1');
@@ -559,7 +650,7 @@
                     const controls = document.createElement('div');
                     controls.className = 'element-controls';
                     controls.innerHTML = `
-                        <button onclick="editElement('${element.id}')">✏️</button>
+                        <button class="edit-element" onclick="editElement('${element.id}')">✏️</button>
                         <button class="delete-element" onclick="deleteElement('${element.id}')">🗑️</button>
                     `;
                     div.appendChild(controls);
@@ -573,6 +664,7 @@
             }
         }
         
+        // ========== РЕДАКТИРОВАНИЕ ==========
         window.editElement = function(id) {
             const el = siteElements.find(e => e.id === id);
             if (!el) return;
@@ -587,7 +679,7 @@
         };
         
         window.deleteElement = function(id) {
-            if (confirm('Удалить?')) {
+            if (confirm('Удалить элемент?')) {
                 siteElements = siteElements.filter(e => e.id !== id);
                 saveSite();
                 renderSite();
@@ -596,24 +688,29 @@
         
         function addElement(type) {
             let content = '';
+            let link = '#';
+            
             if (type === 'title') content = prompt('Заголовок:', 'Новый заголовок');
             else if (type === 'text') content = prompt('Текст:', 'Новый текст');
-            else if (type === 'button') content = prompt('Текст кнопки:', 'Нажми меня');
+            else if (type === 'button') {
+                content = prompt('Текст кнопки:', 'Нажми меня');
+                link = prompt('Ссылка:', '#');
+            }
             else if (type === 'image') content = prompt('URL картинки:', 'https://picsum.photos/300/200');
             if (!content) return;
             
             siteElements.push({
-                id: Date.now() + '',
+                id: Date.now() + '_' + Math.random(),
                 type: type,
                 content: content,
-                link: '#'
+                link: link
             });
             saveSite();
             renderSite();
         }
         
         function clearSite() {
-            if (confirm('Очистить всё?')) {
+            if (confirm('Очистить весь сайт? Все элементы будут удалены!')) {
                 siteElements = [];
                 saveSite();
                 renderSite();
@@ -628,12 +725,14 @@
             renderSite();
         }
         
+        // ========== РЕЖИМ РЕДАКТОРА ==========
         function enterEditor() {
             isEditorMode = true;
             document.getElementById('editorBtn').style.display = 'none';
             document.getElementById('exitEditorBtn').style.display = 'block';
             document.getElementById('editorPanel').classList.remove('hidden');
             renderSite();
+            initDragAndDrop();
         }
         
         function exitEditor() {
@@ -644,33 +743,22 @@
             renderSite();
         }
         
-        // ========== ЖИВЫЕ МЫШКИ ЧЕРЕЗ FIREBASE ==========
+        // ========== МЫШКИ (Firebase) ==========
         let cursorsRef = database.ref('cursors');
-        let onlineCount = 0;
         
-        // Отправляем свою позицию
         function sendMousePosition(x, y) {
-            const myCursorRef = database.ref('cursors/' + myId);
-            myCursorRef.set({
-                x: x,
-                y: y,
-                name: myName,
-                timestamp: Date.now()
+            database.ref('cursors/' + myId).set({
+                x: x, y: y, name: myName, timestamp: Date.now()
             });
         }
         
-        // Удаляем себя при выходе
         function removeMyCursor() {
             database.ref('cursors/' + myId).remove();
         }
         
-        // Слушаем чужие мышки
         function listenCursors() {
             cursorsRef.on('value', (snapshot) => {
                 const cursors = snapshot.val() || {};
-                const container = document.getElementById('pageContent').parentNode;
-                
-                // Удаляем старые чужие мышки
                 document.querySelectorAll('.remote-cursor').forEach(el => el.remove());
                 
                 let count = 0;
@@ -687,14 +775,12 @@
                     cursorDiv.style.top = cursor.y + 'px';
                     cursorDiv.style.border = `2px solid ${colors[colorIndex]}`;
                     cursorDiv.style.background = `${colors[colorIndex]}33`;
-                    cursorDiv.innerHTML = `<div class="cursor-name">${cursor.name || '???'}</div>`;
+                    cursorDiv.innerHTML = `<div class="cursor-name">${escapeHtml(cursor.name || '???')}</div>`;
                     document.body.appendChild(cursorDiv);
                 }
                 
-                // Обновляем счётчик онлайн
                 document.getElementById('onlineCount').innerHTML = `👥 ${count + 1} онлайн`;
                 
-                // Чистим старые курсоры (старше 5 секунд)
                 const now = Date.now();
                 for (let id in cursors) {
                     if (cursors[id].timestamp && now - cursors[id].timestamp > 5000) {
@@ -704,12 +790,10 @@
             });
         }
         
-        // Слушаем изменения контента от других
         function listenSiteChanges() {
             database.ref('siteContent').on('value', (snapshot) => {
                 const data = snapshot.val();
                 if (data && data.elements && !isEditorMode) {
-                    // Не обновляем если мы в режиме редактора (чтобы не конфликтовать)
                     if (JSON.stringify(siteElements) !== JSON.stringify(data.elements)) {
                         siteElements = data.elements;
                         renderSite();
@@ -718,9 +802,17 @@
             });
         }
         
-        // Своя мышка
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
         function initMyCursor() {
             const cursor = document.getElementById('myCursor');
+            if (!cursor) return;
+            
             document.addEventListener('mousemove', (e) => {
                 cursor.style.left = (e.clientX - 12) + 'px';
                 cursor.style.top = (e.clientY - 12) + 'px';
@@ -731,315 +823,56 @@
             window.addEventListener('beforeunload', removeMyCursor);
         }
         
-        // Инициализация
+        // ========== ЗАПУСК ==========
         document.addEventListener('DOMContentLoaded', () => {
             loadSite();
             initMyCursor();
             listenCursors();
             listenSiteChanges();
+            initTheme();
             
-            // Отправляем "сердцебиение" чтобы не удалили
             setInterval(() => {
                 if (myId) {
                     database.ref('cursors/' + myId).update({ timestamp: Date.now() });
                 }
             }, 3000);
             
+            // Кнопки
             document.getElementById('editorBtn').onclick = enterEditor;
             document.getElementById('exitEditorBtn').onclick = exitEditor;
             document.getElementById('closeEditorBtn').onclick = exitEditor;
             document.getElementById('clearSiteBtn').onclick = clearSite;
+            document.getElementById('themeBtn').onclick = toggleTheme;
+            document.getElementById('exportBtn').onclick = exportSite;
             
-            document.getElementById('addTextBtn').onclick = () => addElement('text');
+            document.getElementById('importBtn').onclick = () => {
+                document.getElementById('importFile').click();
+            };
+            document.getElementById('importFile').onchange = (e) => {
+                if (e.target.files[0]) importSite(e.target.files[0]);
+                e.target.value = '';
+            };
+            
             document.getElementById('addTitleBtn').onclick = () => addElement('title');
+            document.getElementById('addTextBtn').onclick = () => addElement('text');
             document.getElementById('addButtonBtn').onclick = () => addElement('button');
             document.getElementById('addImageBtn').onclick = () => addElement('image');
             
             document.getElementById('bgColor').onchange = applyStyles;
             document.getElementById('textColor').onchange = applyStyles;
-        });
-    </script>
-</body>
-</html>
-        
-        // Инициализация Firebase
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-        
-        // ========== ОСТАЛЬНОЙ КОД ==========
-        let myId = Math.random().toString(36).substr(2, 8);
-        let myName = prompt('Введи своё имя:', 'User_' + myId.substr(0, 4)) || 'Guest';
-        let isEditorMode = false;
-        let siteElements = [];
-        
-        // Загрузка сайта
-        function loadSite() {
-            const saved = localStorage.getItem('sitemaker_site');
-            if (saved) {
-                siteElements = JSON.parse(saved);
-            } else {
-                siteElements = [
-                    { id: '1', type: 'title', content: '✨ SiteMaker' },
-                    { id: '2', type: 'text', content: 'Создай свой сайт вместе с друзьями! Ты видишь их мышки? 🖱️' },
-                    { id: '3', type: 'button', content: 'Нажми меня', link: '#' }
-                ];
-            }
-            renderSite();
-        }
-        
-        function saveSite() {
-            localStorage.setItem('sitemaker_site', JSON.stringify(siteElements));
-            // Сохраняем в Firebase чтобы другие видели
-            database.ref('siteContent').set({ elements: siteElements });
-        }
-        
-        function renderSite() {
-            const container = document.getElementById('pageContent');
-            if (!container) return;
             
-            const bgColor = localStorage.getItem('bgColor') || '#f5f5f5';
-            const textColor = localStorage.getItem('textColor') || '#000000';
-            document.body.style.backgroundColor = bgColor;
-            document.body.style.color = textColor;
-            
-            container.innerHTML = '';
-            
-            siteElements.forEach(element => {
-                const div = document.createElement('div');
-                div.className = 'editable-element';
-                div.dataset.id = element.id;
-                
-                if (element.type === 'title') {
-                    const h = document.createElement('h1');
-                    h.textContent = element.content;
-                    div.appendChild(h);
-                } else if (element.type === 'text') {
-                    const p = document.createElement('p');
-                    p.textContent = element.content;
-                    div.appendChild(p);
-                } else if (element.type === 'button') {
-                    const btn = document.createElement('button');
-                    btn.textContent = element.content;
-                    btn.style.padding = '10px 20px';
-                    btn.style.borderRadius = '30px';
-                    btn.style.border = 'none';
-                    btn.style.cursor = 'pointer';
-                    btn.style.background = '#667eea';
-                    btn.style.color = 'white';
-                    if (element.link && element.link !== '#') {
-                        btn.onclick = () => window.open(element.link, '_blank');
-                    }
-                    div.appendChild(btn);
-                } else if (element.type === 'image') {
-                    const img = document.createElement('img');
-                    img.src = element.content;
-                    img.style.maxWidth = '100%';
-                    img.style.borderRadius = '12px';
-                    div.appendChild(img);
+            // Тройной тап по логотипу для входа в админку
+            let tapCount = 0;
+            let tapTimer;
+            document.getElementById('logo').onclick = () => {
+                tapCount++;
+                clearTimeout(tapTimer);
+                tapTimer = setTimeout(() => tapCount = 0, 500);
+                if (tapCount === 3) {
+                    tapCount = 0;
+                    if (!isEditorMode) enterEditor();
                 }
-                
-                if (isEditorMode) {
-                    const controls = document.createElement('div');
-                    controls.className = 'element-controls';
-                    controls.innerHTML = `
-                        <button onclick="editElement('${element.id}')">✏️</button>
-                        <button class="delete-element" onclick="deleteElement('${element.id}')">🗑️</button>
-                    `;
-                    div.appendChild(controls);
-                }
-                
-                container.appendChild(div);
-            });
-            
-            if (siteElements.length === 0 && !isEditorMode) {
-                container.innerHTML = `<div class="welcome-message"><h1>✨ SiteMaker</h1><p>Нажми "Редактор" чтобы начать!</p></div>`;
-            }
-        }
-        
-        window.editElement = function(id) {
-            const el = siteElements.find(e => e.id === id);
-            if (!el) return;
-            let newContent = prompt('Редактировать:', el.content);
-            if (newContent) el.content = newContent;
-            if (el.type === 'button') {
-                let newLink = prompt('Ссылка:', el.link || '#');
-                if (newLink) el.link = newLink;
-            }
-            saveSite();
-            renderSite();
-        };
-        
-        window.deleteElement = function(id) {
-            if (confirm('Удалить?')) {
-                siteElements = siteElements.filter(e => e.id !== id);
-                saveSite();
-                renderSite();
-            }
-        };
-        
-        function addElement(type) {
-            let content = '';
-            if (type === 'title') content = prompt('Заголовок:', 'Новый заголовок');
-            else if (type === 'text') content = prompt('Текст:', 'Новый текст');
-            else if (type === 'button') content = prompt('Текст кнопки:', 'Нажми меня');
-            else if (type === 'image') content = prompt('URL картинки:', 'https://picsum.photos/300/200');
-            if (!content) return;
-            
-            siteElements.push({
-                id: Date.now() + '',
-                type: type,
-                content: content,
-                link: '#'
-            });
-            saveSite();
-            renderSite();
-        }
-        
-        function clearSite() {
-            if (confirm('Очистить всё?')) {
-                siteElements = [];
-                saveSite();
-                renderSite();
-            }
-        }
-        
-        function applyStyles() {
-            const bg = document.getElementById('bgColor')?.value;
-            const color = document.getElementById('textColor')?.value;
-            if (bg) localStorage.setItem('bgColor', bg);
-            if (color) localStorage.setItem('textColor', color);
-            renderSite();
-        }
-        
-        function enterEditor() {
-            isEditorMode = true;
-            document.getElementById('editorBtn').style.display = 'none';
-            document.getElementById('exitEditorBtn').style.display = 'block';
-            document.getElementById('editorPanel').classList.remove('hidden');
-            renderSite();
-        }
-        
-        function exitEditor() {
-            isEditorMode = false;
-            document.getElementById('editorBtn').style.display = 'block';
-            document.getElementById('exitEditorBtn').style.display = 'none';
-            document.getElementById('editorPanel').classList.add('hidden');
-            renderSite();
-        }
-        
-        // ========== ЖИВЫЕ МЫШКИ ЧЕРЕЗ FIREBASE ==========
-        let cursorsRef = database.ref('cursors');
-        let onlineCount = 0;
-        
-        // Отправляем свою позицию
-        function sendMousePosition(x, y) {
-            const myCursorRef = database.ref('cursors/' + myId);
-            myCursorRef.set({
-                x: x,
-                y: y,
-                name: myName,
-                timestamp: Date.now()
-            });
-        }
-        
-        // Удаляем себя при выходе
-        function removeMyCursor() {
-            database.ref('cursors/' + myId).remove();
-        }
-        
-        // Слушаем чужие мышки
-        function listenCursors() {
-            cursorsRef.on('value', (snapshot) => {
-                const cursors = snapshot.val() || {};
-                const container = document.getElementById('pageContent').parentNode;
-                
-                // Удаляем старые чужие мышки
-                document.querySelectorAll('.remote-cursor').forEach(el => el.remove());
-                
-                let count = 0;
-                for (let id in cursors) {
-                    if (id === myId) continue;
-                    count++;
-                    const cursor = cursors[id];
-                    const colors = ['#ff0000', '#00ff00', '#0066ff', '#ffaa00', '#ff00ff', '#00cccc'];
-                    const colorIndex = (id.charCodeAt(0) || 0) % colors.length;
-                    
-                    const cursorDiv = document.createElement('div');
-                    cursorDiv.className = 'remote-cursor';
-                    cursorDiv.style.left = cursor.x + 'px';
-                    cursorDiv.style.top = cursor.y + 'px';
-                    cursorDiv.style.border = `2px solid ${colors[colorIndex]}`;
-                    cursorDiv.style.background = `${colors[colorIndex]}33`;
-                    cursorDiv.innerHTML = `<div class="cursor-name">${cursor.name || '???'}</div>`;
-                    document.body.appendChild(cursorDiv);
-                }
-                
-                // Обновляем счётчик онлайн
-                document.getElementById('onlineCount').innerHTML = `👥 ${count + 1} онлайн`;
-                
-                // Чистим старые курсоры (старше 5 секунд)
-                const now = Date.now();
-                for (let id in cursors) {
-                    if (cursors[id].timestamp && now - cursors[id].timestamp > 5000) {
-                        database.ref('cursors/' + id).remove();
-                    }
-                }
-            });
-        }
-        
-        // Слушаем изменения контента от других
-        function listenSiteChanges() {
-            database.ref('siteContent').on('value', (snapshot) => {
-                const data = snapshot.val();
-                if (data && data.elements && !isEditorMode) {
-                    // Не обновляем если мы в режиме редактора (чтобы не конфликтовать)
-                    if (JSON.stringify(siteElements) !== JSON.stringify(data.elements)) {
-                        siteElements = data.elements;
-                        renderSite();
-                    }
-                }
-            });
-        }
-        
-        // Своя мышка
-        function initMyCursor() {
-            const cursor = document.getElementById('myCursor');
-            document.addEventListener('mousemove', (e) => {
-                cursor.style.left = (e.clientX - 12) + 'px';
-                cursor.style.top = (e.clientY - 12) + 'px';
-                sendMousePosition(e.clientX, e.clientY);
-            });
-            
-            document.addEventListener('mouseleave', removeMyCursor);
-            window.addEventListener('beforeunload', removeMyCursor);
-        }
-        
-        // Инициализация
-        document.addEventListener('DOMContentLoaded', () => {
-            loadSite();
-            initMyCursor();
-            listenCursors();
-            listenSiteChanges();
-            
-            // Отправляем "сердцебиение" чтобы не удалили
-            setInterval(() => {
-                if (myId) {
-                    database.ref('cursors/' + myId).update({ timestamp: Date.now() });
-                }
-            }, 3000);
-            
-            document.getElementById('editorBtn').onclick = enterEditor;
-            document.getElementById('exitEditorBtn').onclick = exitEditor;
-            document.getElementById('closeEditorBtn').onclick = exitEditor;
-            document.getElementById('clearSiteBtn').onclick = clearSite;
-            
-            document.getElementById('addTextBtn').onclick = () => addElement('text');
-            document.getElementById('addTitleBtn').onclick = () => addElement('title');
-            document.getElementById('addButtonBtn').onclick = () => addElement('button');
-            document.getElementById('addImageBtn').onclick = () => addElement('image');
-            
-            document.getElementById('bgColor').onchange = applyStyles;
-            document.getElementById('textColor').onchange = applyStyles;
+            };
         });
     </script>
 </body>
