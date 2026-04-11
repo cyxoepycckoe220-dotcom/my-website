@@ -2,704 +2,189 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>MiniGram — мессенджер с галочками</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiniGram</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        :root {
-            --bg-primary: #0f0f0f;
-            --bg-secondary: #1a1a1a;
-            --bg-tertiary: #2a2a2a;
-            --border-color: #2a2a2a;
-            --accent-color: #667eea;
-            --accent-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --text-primary: #ffffff;
-            --text-secondary: #888888;
-            --success-color: #28a745;
-            --danger-color: #ff4757;
-            --gold: #ffd700;
-            --silver: #c0c0c0;
-            --bronze: #cd7f32;
-        }
-
-        body.light {
-            --bg-primary: #f0f2f5;
-            --bg-secondary: #ffffff;
-            --bg-tertiary: #f0f0f0;
-            --border-color: #e0e0e0;
-            --text-primary: #1a1a1a;
-            --text-secondary: #666666;
-        }
-
-        body {
-            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg-primary);
-            min-height: 100vh;
-            transition: all 0.3s ease;
-        }
-
-        @keyframes logoFloat {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-3px); }
-        }
-
-        @keyframes messageAppear {
-            0% { opacity: 0; transform: scale(0.8) translateY(20px); }
-            50% { transform: scale(1.02); }
-            100% { opacity: 1; transform: scale(1) translateY(0); }
-        }
-
-        @keyframes badgePulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-
-        .chat-container { display: flex; height: 100vh; background: var(--bg-primary); }
-        .users-panel { width: 320px; background: var(--bg-secondary); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; }
-        .panel-header { padding: 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
-        .logo-area { display: flex; align-items: center; gap: 10px; cursor: pointer; animation: logoFloat 3s ease infinite; }
-        .logo-icon { font-size: 32px; background: var(--accent-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; }
-        .logo-text { font-size: 20px; font-weight: bold; background: var(--accent-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; }
-        .profile-area { position: relative; cursor: pointer; }
-        .profile-avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--accent-gradient); display: flex; align-items: center; justify-content: center; font-size: 22px; transition: transform 0.2s; position: relative; }
-        .profile-avatar:hover { transform: scale(1.05); }
-        .badge { position: absolute; bottom: -2px; right: -2px; font-size: 14px; filter: drop-shadow(0 0 2px rgba(0,0,0,0.5)); animation: badgePulse 2s ease infinite; }
-        .user-badge { font-size: 14px; margin-left: 6px; vertical-align: middle; }
-        .dialog-badge { font-size: 14px; margin-left: 5px; }
-        
-        .profile-menu { position: absolute; top: 55px; right: 0; width: 300px; background: var(--bg-secondary); border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); z-index: 100; display: none; border: 1px solid var(--border-color); }
-        .profile-menu.show { display: block; animation: messageAppear 0.2s ease; }
-        .profile-menu-header { padding: 20px; text-align: center; background: var(--accent-gradient); border-radius: 20px 20px 0 0; }
-        .profile-menu-avatar { width: 70px; height: 70px; border-radius: 50%; background: white; display: flex; align-items: center; justify-content: center; font-size: 36px; margin: 0 auto 10px; position: relative; }
-        .profile-menu-name { color: white; font-size: 18px; font-weight: bold; }
-        .profile-menu-item { padding: 12px 20px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: background 0.2s; color: var(--text-primary); }
-        .profile-menu-item:hover { background: var(--bg-tertiary); }
-        
-        .admin-panel { border-top: 1px solid var(--border-color); margin-top: 10px; padding-top: 10px; }
-        .admin-title { font-size: 12px; color: var(--text-secondary); margin-bottom: 10px; padding: 0 20px; }
-        .badge-option { display: flex; align-items: center; gap: 10px; padding: 8px 20px; cursor: pointer; transition: background 0.2s; }
-        .badge-option:hover { background: var(--bg-tertiary); }
-        .badge-icon { font-size: 20px; width: 40px; }
-        .badge-name { flex: 1; }
-        .badge-give { background: var(--success-color); color: white; border: none; padding: 4px 12px; border-radius: 20px; cursor: pointer; font-size: 12px; }
-        
-        .panel-tabs { display: flex; border-bottom: 1px solid var(--border-color); }
-        .panel-tab { flex: 1; padding: 12px; text-align: center; background: none; border: none; color: var(--text-secondary); cursor: pointer; font-weight: bold; }
-        .panel-tab.active { color: var(--accent-color); border-bottom: 2px solid var(--accent-color); }
-        .panel-content { flex: 1; overflow-y: auto; }
-        .panel-content.hidden { display: none; }
-        
-        .dialog-item { padding: 12px 20px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: background 0.2s; border-bottom: 1px solid var(--border-color); }
-        .dialog-item:hover, .dialog-item.active { background: var(--bg-tertiary); }
-        .dialog-avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--bg-tertiary); display: flex; align-items: center; justify-content: center; font-size: 20px; position: relative; }
-        .dialog-info { flex: 1; }
-        .dialog-name { color: var(--text-primary); font-weight: bold; font-size: 15px; display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
-        .dialog-last-message { color: var(--text-secondary); font-size: 12px; margin-top: 4px; }
-        
-        .chat-main { flex: 1; display: flex; flex-direction: column; }
-        .chat-header { padding: 20px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 12px; background: var(--bg-secondary); }
-        .chat-header-avatar { width: 48px; height: 48px; border-radius: 50%; background: var(--accent-gradient); display: flex; align-items: center; justify-content: center; font-size: 24px; position: relative; }
-        .chat-header-info { flex: 1; }
-        .chat-header-info h3 { color: var(--text-primary); font-size: 16px; display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
-        .chat-header-info p { color: var(--text-secondary); font-size: 12px; }
-        .call-btn { background: linear-gradient(135deg, #28a745, #20c997); border: none; color: white; font-size: 18px; cursor: pointer; padding: 8px 16px; border-radius: 30px; display: flex; align-items: center; gap: 6px; }
-        
-        .messages-area { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 8px; }
-        .message { max-width: 70%; padding: 10px 14px; border-radius: 18px; font-size: 14px; word-wrap: break-word; animation: messageAppear 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
-        .message.my-message { background: var(--accent-color); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
-        .message.other-message { background: var(--bg-tertiary); color: var(--text-primary); align-self: flex-start; border-bottom-left-radius: 4px; }
-        .message-image { max-width: 200px; max-height: 200px; border-radius: 12px; cursor: pointer; margin: 5px 0; }
-        .message-sender { font-size: 11px; font-weight: bold; margin-bottom: 4px; opacity: 0.8; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
-        .message-time { font-size: 10px; margin-top: 4px; opacity: 0.6; text-align: right; }
-        
-        .message-input-area { padding: 20px; border-top: 1px solid var(--border-color); display: flex; gap: 10px; background: var(--bg-secondary); }
-        .attach-btn { background: var(--bg-tertiary); border: none; font-size: 20px; cursor: pointer; padding: 10px 15px; border-radius: 30px; }
-        .message-input-area input { flex: 1; padding: 12px 18px; border-radius: 30px; border: none; background: var(--bg-tertiary); color: var(--text-primary); font-size: 14px; outline: none; }
-        .message-input-area button { padding: 12px 20px; border-radius: 30px; border: none; background: var(--accent-color); color: white; cursor: pointer; }
-        
-        .image-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; align-items: center; justify-content: center; z-index: 2000; cursor: pointer; }
-        .image-modal.hidden { display: none; }
-        .image-modal img { max-width: 90%; max-height: 90%; border-radius: 20px; }
-        
-        .toast-notification { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); background: linear-gradient(135deg, #28a745, #20c997); color: white; padding: 12px 24px; border-radius: 50px; font-size: 14px; z-index: 1000; opacity: 0; transition: all 0.3s ease; }
-        .toast-notification.show { transform: translateX(-50%) translateY(0); opacity: 1; }
-        
-        .register-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-        .register-box { background: var(--bg-secondary); padding: 40px; border-radius: 30px; width: 90%; max-width: 400px; text-align: center; }
-        .register-box input { width: 100%; padding: 15px; border-radius: 30px; border: none; background: var(--bg-tertiary); color: var(--text-primary); font-size: 16px; margin: 20px 0; text-align: center; }
-        .register-box button { width: 100%; padding: 15px; border-radius: 30px; border: none; background: var(--accent-gradient); color: white; font-size: 16px; font-weight: bold; cursor: pointer; }
-        
-        @media (max-width: 768px) {
-            .users-panel { position: fixed; left: -320px; top: 0; height: 100%; z-index: 200; transition: left 0.3s; }
-            .users-panel.open { left: 0; }
-            .menu-btn { display: block; position: fixed; top: 20px; left: 20px; z-index: 300; background: var(--accent-color); border: none; color: white; font-size: 24px; padding: 10px 15px; border-radius: 30px; cursor: pointer; }
-            .message { max-width: 85%; }
-            .call-btn span { display: none; }
-        }
-        @media (min-width: 769px) { .menu-btn { display: none; } }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: var(--bg-tertiary); }
-        ::-webkit-scrollbar-thumb { background: var(--accent-color); border-radius: 10px; }
+        body { font-family: system-ui; background: #0f0f0f; color: white; padding: 20px; }
+        .container { max-width: 500px; margin: 0 auto; }
+        .register-box, .chat-box { background: #1a1a1a; padding: 30px; border-radius: 24px; text-align: center; }
+        input { width: 100%; padding: 15px; margin: 10px 0; border-radius: 30px; border: none; background: #2a2a2a; color: white; font-size: 16px; }
+        button { background: #667eea; color: white; border: none; padding: 12px 24px; border-radius: 30px; font-size: 16px; cursor: pointer; }
+        .user-list { margin-top: 20px; }
+        .user-item { background: #2a2a2a; padding: 15px; border-radius: 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 15px; cursor: pointer; }
+        .messages { height: 400px; overflow-y: auto; margin: 20px 0; padding: 10px; background: #1a1a1a; border-radius: 16px; }
+        .message { padding: 8px 12px; margin: 5px; border-radius: 16px; max-width: 70%; }
+        .my { background: #667eea; align-self: flex-end; margin-left: auto; }
+        .other { background: #2a2a2a; }
+        .input-area { display: flex; gap: 10px; margin-top: 10px; }
+        .hidden { display: none; }
     </style>
-</head>
-<body class="dark">
-    <div id="registerOverlay" class="register-overlay">
-        <div class="register-box">
-            <div class="logo-area" style="justify-content: center;">
-                <span class="logo-icon">✨</span>
-                <span class="logo-text">MiniGram</span>
-            </div>
-            <h2>Добро пожаловать!</h2>
-            <p>Мессенджер с галочками</p>
-            <input type="text" id="nicknameInput" placeholder="Придумай никнейм" maxlength="20">
-            <button id="registerBtn">🚀 Начать</button>
-            <div id="registerError" style="color:#ff4757; font-size:12px; margin-top:10px;"></div>
-        </div>
-    </div>
-
-    <div class="chat-container" style="display: none;" id="chatContainer">
-        <button class="menu-btn" id="menuBtn">☰</button>
-
-        <div class="users-panel" id="usersPanel">
-            <div class="panel-header">
-                <div class="logo-area">
-                    <span class="logo-icon">✨</span>
-                    <span class="logo-text">MiniGram</span>
-                </div>
-                <div class="profile-area" id="profileArea">
-                    <div class="profile-avatar" id="profileAvatar">😀</div>
-                    <div class="profile-menu" id="profileMenu">
-                        <div class="profile-menu-header">
-                            <div class="profile-menu-avatar" id="menuAvatar">😀</div>
-                            <div class="profile-menu-name" id="menuName">User</div>
-                            <div class="profile-menu-status">🟢 Онлайн</div>
-                        </div>
-                        <div class="profile-menu-item theme-switch" style="justify-content: space-between;">
-                            <span>🎨 Тема</span>
-                            <div style="display: flex; gap: 8px;">
-                                <span class="theme-option" data-theme="dark">🌙 Тёмная</span>
-                                <span class="theme-option" data-theme="light">☀️ Светлая</span>
-                            </div>
-                        </div>
-                        <div class="profile-menu-item" id="logoutMenuItem">
-                            <span>🚪 Выйти</span>
-                        </div>
-                        <div id="adminPanel" class="admin-panel" style="display: none;">
-                            <div class="admin-title">👑 Админ-панель — Выдача галочек</div>
-                            <div class="badge-option" onclick="giveBadge('👑', 'Король', 'gold')">
-                                <span class="badge-icon">👑</span>
-                                <span class="badge-name">Король</span>
-                                <span class="badge-give">Выдать</span>
-                            </div>
-                            <div class="badge-option" onclick="giveBadge('⭐', 'VIP', 'silver')">
-                                <span class="badge-icon">⭐</span>
-                                <span class="badge-name">VIP</span>
-                                <span class="badge-give">Выдать</span>
-                            </div>
-                            <div class="badge-option" onclick="giveBadge('🎨', 'Креатор', 'bronze')">
-                                <span class="badge-icon">🎨</span>
-                                <span class="badge-name">Креатор</span>
-                                <span class="badge-give">Выдать</span>
-                            </div>
-                            <div class="badge-option" onclick="giveBadge('💎', 'Алмазный', 'blue')">
-                                <span class="badge-icon">💎</span>
-                                <span class="badge-name">Алмазный</span>
-                                <span class="badge-give">Выдать</span>
-                            </div>
-                            <div class="badge-option" onclick="giveBadge('🎮', 'Геймер', 'green')">
-                                <span class="badge-icon">🎮</span>
-                                <span class="badge-name">Геймер</span>
-                                <span class="badge-give">Выдать</span>
-                            </div>
-                            <div class="badge-option" onclick="removeAllBadges()" style="border-top: 1px solid var(--border-color); margin-top: 10px;">
-                                <span class="badge-icon">🗑️</span>
-                                <span class="badge-name">Снять все галочки</span>
-                                <span class="badge-give" style="background: #ff4757;">Снять</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="panel-tabs">
-                <button class="panel-tab active" data-tab="chats">💬 Чаты</button>
-                <button class="panel-tab disabled" data-tab="channels">📢 Каналы</button>
-                <button class="panel-tab disabled" data-tab="groups">👥 Группы</button>
-            </div>
-
-            <div id="chatsPanel" class="panel-content">
-                <div id="dialogsList" style="padding: 20px; color: var(--text-secondary); text-align: center;">Загрузка...</div>
-            </div>
-
-            <div id="channelsPanel" class="panel-content hidden">
-                <div style="text-align: center; padding: 40px;"><div style="font-size: 80px;">📢</div><h3>Скоро появится!</h3></div>
-            </div>
-
-            <div id="groupsPanel" class="panel-content hidden">
-                <div style="text-align: center; padding: 40px;"><div style="font-size: 80px;">👥</div><h3>Скоро появится!</h3></div>
-            </div>
-        </div>
-
-        <div class="chat-main">
-            <div class="chat-header" id="chatHeader" style="display: none;">
-                <div class="chat-header-avatar" id="chatAvatar">😀<span class="badge" id="chatBadge" style="display: none;"></span></div>
-                <div class="chat-header-info">
-                    <h3 id="chatUserName">Выберите чат</h3>
-                    <p id="chatUserStatus"></p>
-                </div>
-                <button class="call-btn" id="callBtn">📞 <span>Позвать</span></button>
-            </div>
-
-            <div class="messages-area" id="messagesArea">
-                <div style="text-align: center; color: var(--text-secondary); padding: 40px;">👈 Выберите чат</div>
-            </div>
-
-            <div class="message-input-area" id="messageInputArea" style="display: none;">
-                <button class="attach-btn" id="attachImageBtn" title="Отправить картинку">🖼️</button>
-                <input type="text" id="messageInput" placeholder="Напиши сообщение...">
-                <button id="sendBtn">📤</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="toastNotification" class="toast-notification"><span id="toastMessage"></span></div>
-    <div id="imageModal" class="image-modal hidden"><img id="modalImage" src=""></div>
-
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
-    
-    <script>
-        // ========== FIREBASE КЛЮЧИ ==========
-        const firebaseConfig = {
-  apiKey: "AIzaSyCKod1JVM2fp6kbCHfYdbAFJgTOHg8Kzfk",
-  authDomain: "sitemaker-c4226.firebaseapp.com",
-  databaseURL: "https://sitemaker-c4226-default-rtdb.firebaseio.com",
-  projectId: "sitemaker-c4226",
-  storageBucket: "sitemaker-c4226.firebasestorage.app",
-  messagingSenderId: "1044402198283",
-  appId: "1:1044402198283:web:504fd7e7a4199eb8de340e"
+</head>
+<body>
+<div class="container">
+    <!-- Регистрация -->
+    <div id="registerPanel" class="register-box">
+        <h2>✨ MiniGram</h2>
+        <input type="text" id="nickname" placeholder="Твой никнейм">
+        <button onclick="register()">Начать</button>
+        <p id="errorMsg" style="color:#ff4757; margin-top:10px;"></p>
+    </div>
+
+    <!-- Чат -->
+    <div id="chatPanel" class="chat-box hidden">
+        <div id="usersList" class="user-list"></div>
+        <div id="chatArea" class="hidden">
+            <div id="chatHeader" style="margin-bottom: 10px;">
+                <strong id="chatWith"></strong> <span id="onlineStatus"></span>
+            </div>
+            <div id="messages" class="messages"></div>
+            <div class="input-area">
+                <input type="text" id="messageInput" placeholder="Сообщение...">
+                <button onclick="sendMessage()">📤</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ========== ВСТАВЬ СВОИ КЛЮЧИ СЮДА ==========
+    const firebaseConfig = {
+  apiKey: "AIzaSyD8UUafDtOr6mof098U0uW8yhRLIv76zZY",
+  authDomain: "mim-b31d1.firebaseapp.com",
+  projectId: "mim-b31d1",
+  storageBucket: "mim-b31d1.firebasestorage.app",
+  messagingSenderId: "1030925152892",
+  appId: "1:1030925152892:web:1c248bf39186a7006d4ff9"
 };
-        
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-        const storage = firebase.storage();
-        
-        // ========== ПЕРЕМЕННЫЕ ==========
-        let myId = null;
-        let myNickname = null;
-        let myAvatar = '😀';
-        let currentChatId = null;
-        let users = {};
-        let currentMessagesRef = null;
-        
-        // 👑 ЗАМЕНИ НА СВОЙ ID ПОСЛЕ РЕГИСТРАЦИИ! 👑
-        const ADMIN_ID = "ТВОЙ_ID_АДМИНА";
-        
-        const avatars = ['😀', '😎', '🥳', '😺', '🦊', '🐼', '🌟', '🎮', '⚽', '🎵', '📚', '🎨'];
-        function getRandomAvatar() { return avatars[Math.floor(Math.random() * avatars.length)]; }
-        
-        function showToast(msg, isError = false) {
-            const toast = document.getElementById('toastMessage');
-            toast.textContent = msg;
-            const toastDiv = document.getElementById('toastNotification');
-            toastDiv.style.background = isError ? '#ff4757' : 'linear-gradient(135deg, #28a745, #20c997)';
-            toastDiv.classList.add('show');
-            setTimeout(() => toastDiv.classList.remove('show'), 3000);
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let myId = null;
+    let myName = null;
+    let currentChatWith = null;
+
+    function register() {
+        const name = document.getElementById('nickname').value.trim();
+        if (!name) {
+            document.getElementById('errorMsg').textContent = 'Введи никнейм!';
+            return;
         }
-        
-        // ========== БЕЙДЖИ ==========
-        const badgeStyles = {
-            gold: { color: '#ffd700' },
-            silver: { color: '#c0c0c0' },
-            bronze: { color: '#cd7f32' },
-            blue: { color: '#4fc3f7' },
-            green: { color: '#66bb6a' }
-        };
-        
-        async function getUserBadges(userId) {
-            const snapshot = await database.ref('badges/' + userId).once('value');
-            return snapshot.val() || [];
-        }
-        
-        window.giveBadge = async function(icon, name, color) {
-            if (myId !== ADMIN_ID) { showToast('❌ Только администратор может выдавать галочки!', true); return; }
-            if (!currentChatId) { showToast('❌ Сначала выбери пользователя в чате', true); return; }
-            
-            const userBadgesRef = database.ref('badges/' + currentChatId);
-            const snapshot = await userBadgesRef.once('value');
-            let badges = snapshot.val() || [];
-            if (badges.find(b => b.icon === icon)) { showToast(`❌ Галочка ${icon} уже есть`, true); return; }
-            
-            badges.push({ icon, name, color, givenBy: myId, givenAt: Date.now() });
-            await userBadgesRef.set(badges);
-            showToast(`✅ Галочка ${icon} выдана!`);
-            renderDialogs();
-            if (currentChatId) updateChatHeader(currentChatId);
-        };
-        
-        window.removeAllBadges = async function() {
-            if (myId !== ADMIN_ID) { showToast('❌ Только администратор может снимать галочки!', true); return; }
-            if (!currentChatId) { showToast('❌ Сначала выбери пользователя в чате', true); return; }
-            await database.ref('badges/' + currentChatId).remove();
-            showToast(`✅ Все галочки сняты!`);
-            renderDialogs();
-            if (currentChatId) updateChatHeader(currentChatId);
-        };
-        
-        async function updateChatHeader(userId) {
-            const badges = await getUserBadges(userId);
-            const badgeSpan = document.getElementById('chatBadge');
-            if (badges.length > 0) {
-                badgeSpan.style.display = 'inline-block';
-                badgeSpan.innerHTML = badges.map(b => b.icon).join('');
-            } else {
-                badgeSpan.style.display = 'none';
-            }
-        }
-        
-        // ========== ТЕМА ==========
-        function initTheme() {
-            const saved = localStorage.getItem('minigram_theme') || 'dark';
-            document.body.classList.add(saved);
-            document.querySelectorAll('.theme-option').forEach(opt => {
-                opt.classList.toggle('active', opt.dataset.theme === saved);
-            });
-        }
-        function setTheme(theme) {
-            document.body.classList.remove('dark', 'light');
-            document.body.classList.add(theme);
-            localStorage.setItem('minigram_theme', theme);
-            document.querySelectorAll('.theme-option').forEach(opt => {
-                opt.classList.toggle('active', opt.dataset.theme === theme);
-            });
-        }
-        
-        // ========== ПРОФИЛЬ ==========
-        function toggleProfileMenu() { document.getElementById('profileMenu').classList.toggle('show'); }
-        function logout() {
-            if (confirm('Выйти?')) {
-                localStorage.removeItem('minigram_user');
-                if (myId) database.ref('users/' + myId).update({ online: false });
-                location.reload();
-            }
-        }
-        
-        // ========== РЕГИСТРАЦИЯ ==========
-        function register() {
-            const nickname = document.getElementById('nicknameInput').value.trim();
-            const errorDiv = document.getElementById('registerError');
-            
-            if (!nickname || nickname.length < 2) {
-                errorDiv.textContent = '❌ Введи никнейм (минимум 2 символа)';
-                return;
-            }
-            
-            myId = Date.now() + '_' + Math.random().toString(36).substr(2, 6);
-            myNickname = nickname;
-            myAvatar = getRandomAvatar();
-            
-            const userData = {
-                id: myId,
-                nickname: myNickname,
-                avatar: myAvatar,
-                online: true,
-                lastSeen: Date.now()
-            };
-            
-            console.log('👤 Регистрация:', userData);
-            
-            database.ref('users/' + myId).set(userData);
-            localStorage.setItem('minigram_user', JSON.stringify({ id: myId, nickname: myNickname, avatar: myAvatar }));
-            
-            document.getElementById('registerOverlay').style.display = 'none';
-            document.getElementById('chatContainer').style.display = 'flex';
-            document.getElementById('profileAvatar').textContent = myAvatar;
-            document.getElementById('menuAvatar').textContent = myAvatar;
-            document.getElementById('menuName').textContent = myNickname;
-            
-            if (myId === ADMIN_ID) {
-                document.getElementById('adminPanel').style.display = 'block';
-                showToast('👑 Добро пожаловать, Администратор!');
-            }
-            
-            initApp();
-        }
-        
-        function checkExistingUser() {
-            const saved = localStorage.getItem('minigram_user');
-            if (saved) {
-                const user = JSON.parse(saved);
-                myId = user.id;
-                myNickname = user.nickname;
-                myAvatar = user.avatar || getRandomAvatar();
-                database.ref('users/' + myId).update({ online: true, lastSeen: Date.now() });
-                document.getElementById('registerOverlay').style.display = 'none';
-                document.getElementById('chatContainer').style.display = 'flex';
-                document.getElementById('profileAvatar').textContent = myAvatar;
-                document.getElementById('menuAvatar').textContent = myAvatar;
-                document.getElementById('menuName').textContent = myNickname;
-                
-                if (myId === ADMIN_ID) {
-                    document.getElementById('adminPanel').style.display = 'block';
-                }
-                
-                initApp();
-            }
-        }
-        
-        // ========== ЗАГРУЗКА ПОЛЬЗОВАТЕЛЕЙ ==========
-        async function loadUsers() {
-            database.ref('users').on('value', async (snapshot) => {
-                users = snapshot.val() || {};
-                await renderDialogs();
-            });
-        }
-        
-        async function renderDialogs() {
-            const container = document.getElementById('dialogsList');
-            const usersList = Object.values(users).filter(u => u.id !== myId);
-            
-            if (usersList.length === 0) {
-                container.innerHTML = '<div style="padding: 20px; text-align: center;">👥 Нет других пользователей</div>';
-                return;
-            }
-            
-            let html = '';
-            for (const user of usersList) {
-                const badges = await getUserBadges(user.id);
-                const badgeHtml = badges.map(b => `<span class="dialog-badge" style="color: ${badgeStyles[b.color]?.color || '#ffd700'}">${b.icon}</span>`).join('');
-                html += `
-                    <div class="dialog-item ${currentChatId === user.id ? 'active' : ''}" onclick="selectChat('${user.id}')">
-                        <div class="dialog-avatar">${user.avatar || '😀'}</div>
-                        <div class="dialog-info">
-                            <div class="dialog-name">${escapeHtml(user.nickname)} ${badgeHtml}</div>
-                            <div class="dialog-last-message">${user.online ? '🟢 Онлайн' : '⚫ Офлайн'}</div>
-                        </div>
-                    </div>
-                `;
-            }
-            container.innerHTML = html;
-        }
-        
-        // ========== ВЫБОР ЧАТА ==========
-        window.selectChat = async function(id) {
-            if (currentMessagesRef) currentMessagesRef.off();
-            currentChatId = id;
-            
-            await renderDialogs();
-            
-            const user = users[id];
-            if (!user) {
-                console.error('Пользователь не найден:', id);
-                return;
-            }
-            
-            const badges = await getUserBadges(id);
-            const badgeHtml = badges.map(b => `<span style="color: ${badgeStyles[b.color]?.color || '#ffd700'}">${b.icon}</span>`).join('');
-            
-            document.getElementById('chatHeader').style.display = 'flex';
-            document.getElementById('messageInputArea').style.display = 'flex';
-            document.getElementById('chatUserName').innerHTML = escapeHtml(user.nickname) + ' ' + badgeHtml;
-            document.getElementById('chatAvatar').innerHTML = user.avatar || '😀';
-            document.getElementById('chatUserStatus').innerHTML = user.online ? '🟢 Онлайн' : '⚫ Офлайн';
-            
-            updateChatHeader(id);
-            document.getElementById('messagesArea').innerHTML = '';
-            loadMessages();
-        };
-        
-        function getChatRef() {
-            if (!currentChatId) return null;
-            const chatId = [myId, currentChatId].sort().join('_');
-            return database.ref('messages/' + chatId);
-        }
-        
-        function loadMessages() {
-            const chatRef = getChatRef();
-            if (!chatRef) return;
-            currentMessagesRef = chatRef;
-            
-            chatRef.limitToLast(50).once('value', (snapshot) => {
-                const messages = snapshot.val();
-                if (messages) Object.values(messages).forEach(m => displayMessage(m));
-            });
-            chatRef.on('child_added', (snapshot) => {
-                const msg = snapshot.val();
-                if (!document.querySelector(`[data-msg-id="${msg.id}"]`)) displayMessage(msg);
-            });
-        }
-        
-        async function displayMessage(message) {
-            const container = document.getElementById('messagesArea');
-            const isMy = message.senderId === myId;
-            const date = new Date(message.timestamp);
-            const timeStr = `${date.getHours().toString().padStart(2,'0')}:${date.getMinutes().toString().padStart(2,'0')}`;
-            
-            if (container.children.length === 1 && container.children[0].innerText.includes('Выберите чат')) {
-                container.innerHTML = '';
-            }
-            
-            const senderBadges = await getUserBadges(message.senderId);
-            const senderBadgeHtml = senderBadges.map(b => `<span style="color: ${badgeStyles[b.color]?.color || '#ffd700'}">${b.icon}</span>`).join('');
-            
-            const div = document.createElement('div');
-            div.className = `message ${isMy ? 'my-message' : 'other-message'}`;
-            div.setAttribute('data-msg-id', message.id);
-            
-            let content = '';
-            if (message.type === 'image') {
-                content = `<img src="${message.imageUrl}" class="message-image" onclick="openImageModal('${message.imageUrl}')">`;
-            } else {
-                content = escapeHtml(message.text);
-            }
-            
-            div.innerHTML = `
-                ${!isMy ? `<div class="message-sender">${escapeHtml(message.senderNickname)} ${senderBadgeHtml}</div>` : ''}
-                ${content}
-                <div class="message-time">${timeStr}</div>
-            `;
-            container.appendChild(div);
-            div.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
-        
-        // ========== ОТПРАВКА ==========
-        function sendMessage() {
-            const input = document.getElementById('messageInput');
-            const text = input.value.trim();
-            if (!text || !currentChatId) return;
-            
-            const message = {
-                id: Date.now() + '_' + Math.random(),
-                senderId: myId,
-                senderNickname: myNickname,
-                text: text,
-                timestamp: Date.now(),
-                type: 'text'
-            };
-            getChatRef().push(message);
-            input.value = '';
-        }
-        
-        async function sendImage(file) {
-            if (!file || !currentChatId) return;
-            const filename = `${Date.now()}_${file.name}`;
-            const storageRef = storage.ref(`images/${currentChatId}/${filename}`);
-            const upload = await storageRef.put(file);
-            const imageUrl = await upload.ref.getDownloadURL();
-            
-            const message = {
-                id: Date.now() + '_' + Math.random(),
-                senderId: myId,
-                senderNickname: myNickname,
-                imageUrl: imageUrl,
-                timestamp: Date.now(),
-                type: 'image'
-            };
-            getChatRef().push(message);
-            showToast('📷 Картинка отправлена!');
-        }
-        
-        function sendInvite() {
-            if (!currentChatId) { showToast('❌ Выберите чат'); return; }
-            const user = users[currentChatId];
-            if (!user) return;
-            const message = {
-                id: Date.now() + '_' + Math.random(),
-                senderId: myId,
-                senderNickname: myNickname,
-                text: `🔔 ${myNickname} зовёт вас в чат!`,
-                timestamp: Date.now(),
-                type: 'text'
-            };
-            getChatRef().push(message);
-            showToast(`📞 Приглашение отправлено ${user.nickname}!`);
-        }
-        
-        window.openImageModal = function(url) {
-            document.getElementById('modalImage').src = url;
-            document.getElementById('imageModal').classList.remove('hidden');
-        };
-        
-        function escapeHtml(text) {
-            if (!text) return '';
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-        
-        function initTabs() {
-            document.querySelectorAll('.panel-tab').forEach(tab => {
-                tab.addEventListener('click', () => {
-                    if (tab.classList.contains('disabled')) { showToast('🔧 В разработке!'); return; }
-                    document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
-                    tab.classList.add('active');
-                    document.querySelectorAll('.panel-content').forEach(p => p.classList.add('hidden'));
-                    document.getElementById(`${tab.dataset.tab}Panel`).classList.remove('hidden');
-                });
-            });
-        }
-        
-        function initMobileMenu() {
-            const menuBtn = document.getElementById('menuBtn');
-            const panel = document.getElementById('usersPanel');
-            if (menuBtn) {
-                menuBtn.addEventListener('click', () => panel.classList.toggle('open'));
-            }
-            document.addEventListener('click', (e) => {
-                if (window.innerWidth <= 768 && e.target.closest('.dialog-item')) panel.classList.remove('open');
-                if (!e.target.closest('.profile-area')) document.getElementById('profileMenu').classList.remove('show');
-            });
-        }
-        
-        function updateOnlineStatus() {
-            setInterval(() => {
-                if (myId) database.ref('users/' + myId).update({ online: true, lastSeen: Date.now() });
-            }, 10000);
-            window.addEventListener('beforeunload', () => {
-                if (myId) database.ref('users/' + myId).update({ online: false });
-            });
-        }
-        
-        function initApp() {
-            loadUsers();
-            updateOnlineStatus();
-            initTabs();
-            initMobileMenu();
-            initTheme();
-            
-            document.getElementById('sendBtn').onclick = sendMessage;
-            document.getElementById('messageInput').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') sendMessage();
-            });
-            document.getElementById('callBtn').onclick = sendInvite;
-            document.getElementById('profileArea').onclick = toggleProfileMenu;
-            document.getElementById('logoutMenuItem').onclick = logout;
-            document.getElementById('imageModal').onclick = () => document.getElementById('imageModal').classList.add('hidden');
-            
-            document.getElementById('attachImageBtn').onclick = () => {
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.accept = 'image/*';
-                input.onchange = (e) => sendImage(e.target.files[0]);
-                input.click();
-            };
-            
-            document.querySelectorAll('.theme-option').forEach(opt => {
-                opt.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    setTheme(opt.dataset.theme);
-                });
-            });
-        }
-        
-        document.getElementById('registerBtn').onclick = register;
-        document.getElementById('nicknameInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') register();
+        myId = Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+        myName = name;
+
+        db.ref('users/' + myId).set({
+            id: myId,
+            name: myName,
+            online: true,
+            lastSeen: Date.now()
         });
+
+        localStorage.setItem('minigram_user', JSON.stringify({ id: myId, name: myName }));
+        document.getElementById('registerPanel').classList.add('hidden');
+        document.getElementById('chatPanel').classList.remove('hidden');
+        loadUsers();
+    }
+
+    function checkUser() {
+        const saved = localStorage.getItem('minigram_user');
+        if (saved) {
+            const user = JSON.parse(saved);
+            myId = user.id;
+            myName = user.name;
+            db.ref('users/' + myId).update({ online: true, lastSeen: Date.now() });
+            document.getElementById('registerPanel').classList.add('hidden');
+            document.getElementById('chatPanel').classList.remove('hidden');
+            loadUsers();
+        }
+    }
+
+    function loadUsers() {
+        db.ref('users').on('value', (snapshot) => {
+            const users = snapshot.val() || {};
+            const container = document.getElementById('usersList');
+            const list = Object.values(users).filter(u => u.id !== myId);
+            
+            if (list.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#888;">👥 Нет других пользователей</p>';
+                return;
+            }
+            
+            container.innerHTML = list.map(user => `
+                <div class="user-item" onclick="startChat('${user.id}', '${escapeHtml(user.name)}')">
+                    <span style="font-size:30px;">${user.online ? '🟢' : '⚫'}</span>
+                    <div><strong>${escapeHtml(user.name)}</strong><br><small>${user.online ? 'Онлайн' : 'Офлайн'}</small></div>
+                </div>
+            `).join('');
+        });
+    }
+
+    function startChat(userId, userName) {
+        currentChatWith = userId;
+        document.getElementById('chatArea').classList.remove('hidden');
+        document.getElementById('chatWith').innerHTML = userName;
+        document.getElementById('messages').innerHTML = '';
         
-        checkExistingUser();
-    </script>
+        const chatId = [myId, userId].sort().join('_');
+        const msgsRef = db.ref('messages/' + chatId);
+        
+        msgsRef.off();
+        msgsRef.limitToLast(50).on('child_added', (snapshot) => {
+            const msg = snapshot.val();
+            displayMessage(msg);
+        });
+    }
+
+    function displayMessage(msg) {
+        const container = document.getElementById('messages');
+        const isMy = msg.senderId === myId;
+        const time = new Date(msg.timestamp).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+        
+        const div = document.createElement('div');
+        div.className = `message ${isMy ? 'my' : 'other'}`;
+        div.innerHTML = `
+            <div>${escapeHtml(msg.text)}</div>
+            <small style="opacity:0.6;">${time}</small>
+        `;
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function sendMessage() {
+        const input = document.getElementById('messageInput');
+        const text = input.value.trim();
+        if (!text || !currentChatWith) return;
+        
+        const chatId = [myId, currentChatWith].sort().join('_');
+        db.ref('messages/' + chatId).push({
+            senderId: myId,
+            senderName: myName,
+            text: text,
+            timestamp: Date.now()
+        });
+        input.value = '';
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Онлайн статус
+    setInterval(() => {
+        if (myId) db.ref('users/' + myId).update({ online: true, lastSeen: Date.now() });
+    }, 10000);
+    
+    window.addEventListener('beforeunload', () => {
+        if (myId) db.ref('users/' + myId).update({ online: false });
+    });
+
+    checkUser();
+</script>
 </body>
 </html>
