@@ -11,21 +11,63 @@
             box-sizing: border-box;
         }
 
+        /* Светлая тема (по умолчанию) */
         body {
+            --bg-body: #f0f2f5;
+            --bg-header: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --bg-card: #ffffff;
+            --bg-input: #f0f2f5;
+            --text-primary: #1a1a1a;
+            --text-secondary: #666666;
+            --border-color: #e0e0e0;
+            --message-my: #667eea;
+            --message-other: #e4e6eb;
+            --accent: #667eea;
             font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-            background: #0f0f0f;
-            color: white;
+            background: var(--bg-body);
+            color: var(--text-primary);
+            transition: background 0.3s, color 0.3s;
             height: 100vh;
             display: flex;
             flex-direction: column;
         }
 
+        /* Тёмная тема */
+        body.dark {
+            --bg-body: #0f0f0f;
+            --bg-card: #1a1a1a;
+            --bg-input: #2a2a2a;
+            --text-primary: #ffffff;
+            --text-secondary: #888888;
+            --border-color: #2a2a2a;
+            --message-my: #667eea;
+            --message-other: #2a2a2a;
+        }
+
+        /* Арабский RTL */
+        body.rtl {
+            direction: rtl;
+        }
+        body.rtl .chat-header,
+        body.rtl .input-area,
+        body.rtl .top-bar,
+        body.rtl .user-card {
+            direction: rtl;
+        }
+        body.rtl .message {
+            text-align: right;
+        }
+        body.rtl .back-btn {
+            transform: rotate(180deg);
+        }
+
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--bg-header);
             padding: 15px 20px;
             text-align: center;
             font-size: 20px;
             font-weight: bold;
+            color: white;
         }
 
         .register-container {
@@ -37,12 +79,13 @@
         }
 
         .register-box {
-            background: #1a1a1a;
+            background: var(--bg-card);
             padding: 30px;
             border-radius: 30px;
             width: 100%;
             max-width: 350px;
             text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
         .register-box input {
@@ -50,9 +93,9 @@
             padding: 15px;
             margin: 15px 0;
             border-radius: 30px;
-            border: none;
-            background: #2a2a2a;
-            color: white;
+            border: 1px solid var(--border-color);
+            background: var(--bg-input);
+            color: var(--text-primary);
             font-size: 16px;
             text-align: center;
         }
@@ -62,7 +105,7 @@
             padding: 15px;
             border-radius: 30px;
             border: none;
-            background: #667eea;
+            background: var(--accent);
             color: white;
             font-size: 16px;
             font-weight: bold;
@@ -87,8 +130,8 @@
             justify-content: space-between;
             align-items: center;
             padding: 10px 20px;
-            background: #1a1a1a;
-            border-bottom: 1px solid #2a2a2a;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
         }
 
         .online-badge {
@@ -96,10 +139,11 @@
             padding: 5px 12px;
             border-radius: 20px;
             font-size: 12px;
+            color: white;
         }
 
         .profile-btn {
-            background: #2a2a2a;
+            background: var(--bg-input);
             width: 40px;
             height: 40px;
             border-radius: 50%;
@@ -117,7 +161,7 @@
         }
 
         .user-card {
-            background: #1a1a1a;
+            background: var(--bg-card);
             padding: 15px;
             border-radius: 16px;
             margin-bottom: 10px;
@@ -125,17 +169,18 @@
             align-items: center;
             gap: 15px;
             cursor: pointer;
+            border: 1px solid var(--border-color);
         }
 
         .user-card:hover {
-            background: #2a2a2a;
+            background: var(--bg-input);
         }
 
         .user-avatar {
             width: 50px;
             height: 50px;
             border-radius: 50%;
-            background: #667eea;
+            background: var(--accent);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -148,7 +193,7 @@
 
         .user-status {
             font-size: 12px;
-            color: #888;
+            color: var(--text-secondary);
             margin-top: 4px;
         }
 
@@ -164,8 +209,8 @@
             align-items: center;
             gap: 15px;
             padding: 15px 20px;
-            background: #1a1a1a;
-            border-bottom: 1px solid #2a2a2a;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
         }
 
         .back-btn {
@@ -173,7 +218,7 @@
             border: none;
             font-size: 24px;
             cursor: pointer;
-            color: white;
+            color: var(--text-primary);
         }
 
         .chat-title {
@@ -200,13 +245,15 @@
         }
 
         .message.my {
-            background: #667eea;
+            background: var(--message-my);
+            color: white;
             align-self: flex-end;
             border-bottom-right-radius: 4px;
         }
 
         .message.other {
-            background: #2a2a2a;
+            background: var(--message-other);
+            color: var(--text-primary);
             align-self: flex-start;
             border-bottom-left-radius: 4px;
         }
@@ -222,17 +269,17 @@
             display: flex;
             gap: 10px;
             padding: 15px 20px;
-            background: #1a1a1a;
-            border-top: 1px solid #2a2a2a;
+            background: var(--bg-card);
+            border-top: 1px solid var(--border-color);
         }
 
         .input-area input {
             flex: 1;
             padding: 12px;
             border-radius: 30px;
-            border: none;
-            background: #2a2a2a;
-            color: white;
+            border: 1px solid var(--border-color);
+            background: var(--bg-input);
+            color: var(--text-primary);
             outline: none;
         }
 
@@ -240,7 +287,7 @@
             padding: 12px 20px;
             border-radius: 30px;
             border: none;
-            background: #667eea;
+            background: var(--accent);
             color: white;
             cursor: pointer;
         }
@@ -249,6 +296,7 @@
             display: none;
         }
 
+        /* Модальное окно настроек */
         .modal {
             position: fixed;
             top: 0;
@@ -261,28 +309,40 @@
             justify-content: center;
             z-index: 1000;
         }
-
-        .modal.hidden {
-            display: none;
-        }
-
+        .modal.hidden { display: none; }
         .modal-content {
-            background: #1a1a1a;
-            padding: 30px;
+            background: var(--bg-card);
+            padding: 25px;
             border-radius: 30px;
             width: 280px;
             text-align: center;
         }
-
-        .modal-content button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            border-radius: 30px;
-            border: none;
+        .modal-content h3 {
+            margin-bottom: 20px;
+        }
+        .settings-item {
+            margin: 15px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .settings-item select, .settings-item button {
+            padding: 8px 12px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-input);
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+        .logout-btn {
             background: #ff4757;
             color: white;
-            cursor: pointer;
+            border: none;
             width: 100%;
+            padding: 10px;
+            border-radius: 30px;
+            margin-top: 20px;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -292,7 +352,7 @@
     <!-- Регистрация -->
     <div id="registerScreen" class="register-container">
         <div class="register-box">
-            <h2>Добро пожаловать!</h2>
+            <h2 id="regTitle">Добро пожаловать!</h2>
             <input type="text" id="nickname" placeholder="Твой никнейм" maxlength="20">
             <button id="registerBtn">Начать общение</button>
             <div id="regError" class="error"></div>
@@ -304,10 +364,10 @@
         <div class="top-bar">
             <div></div>
             <div class="online-badge" id="onlineCount">0 онлайн</div>
-            <div class="profile-btn" id="profileBtn">👤</div>
+            <div class="profile-btn" id="profileBtn">⚙️</div>
         </div>
         <div id="usersList" class="users-list">
-            <div style="text-align: center; padding: 40px; color: #888;">Загрузка...</div>
+            <div style="text-align: center; padding: 40px; color: var(--text-secondary);">Загрузка...</div>
         </div>
     </div>
 
@@ -325,11 +385,26 @@
         </div>
     </div>
 
-    <!-- Модалка профиля -->
-    <div id="profileModal" class="modal hidden">
+    <!-- Модалка настроек -->
+    <div id="settingsModal" class="modal hidden">
         <div class="modal-content">
-            <div id="modalName" style="font-size: 20px; margin-bottom: 10px;"></div>
-            <button id="logoutBtn">Выйти</button>
+            <h3 id="settingsTitle">Настройки</h3>
+            <div class="settings-item">
+                <span id="themeLabel">Тема:</span>
+                <select id="themeSelect">
+                    <option value="light">☀️ Светлая</option>
+                    <option value="dark">🌙 Тёмная</option>
+                </select>
+            </div>
+            <div class="settings-item">
+                <span id="langLabel">Язык:</span>
+                <select id="langSelect">
+                    <option value="ru">Русский</option>
+                    <option value="en">English</option>
+                    <option value="ar">العربية</option>
+                </select>
+            </div>
+            <button class="logout-btn" id="logoutBtn">Выйти</button>
         </div>
     </div>
 
@@ -337,29 +412,141 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
     <script>
-        // ========== ВСТАВЬ СВОИ КЛЮЧИ FIREBASE ==========
+        // ========== FIREBASE (ВСТАВЬ СВОИ КЛЮЧИ) ==========
         const firebaseConfig = {
-            apiKey: "AIzaSyD8UUafDtOr6mof098U0uW8yhRLIv76zZY",
-            authDomain: "mim-b31d1.firebaseapp.com",
-            databaseURL: "https://mim-b31d1-default-rtdb.firebaseio.com",
-            projectId: "mim-b31d1",
-            storageBucket: "mim-b31d1.firebasestorage.app",
-            messagingSenderId: "1030925152892",
-            appId: "1:1030925152892:web:1c248bf39186a7006d4ff9"
-        };
+  apiKey: "AIzaSyD8UUafDtOr6mof098U0uW8yhRLIv76zZY",
+  authDomain: "mim-b31d1.firebaseapp.com",
+  databaseURL: "https://mim-b31d1-default-rtdb.firebaseio.com",
+  projectId: "mim-b31d1",
+  storageBucket: "mim-b31d1.firebasestorage.app",
+  messagingSenderId: "1030925152892",
+  appId: "1:1030925152892:web:1c248bf39186a7006d4ff9"
+};
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // ========== ПЕРЕМЕННЫЕ ==========
+        // ========== ПЕРЕВОДЫ ==========
+        const translations = {
+            ru: {
+                welcome: "Добро пожаловать!",
+                nicknamePlaceholder: "Твой никнейм",
+                startBtn: "Начать общение",
+                online: "онлайн",
+                loading: "Загрузка...",
+                noUsers: "👥 Нет других пользователей\nПоделись ссылкой с другом",
+                settings: "Настройки",
+                theme: "Тема:",
+                language: "Язык:",
+                logout: "Выйти",
+                messagePlaceholder: "Сообщение...",
+                back: "Назад",
+                errorName: "Никнейм должен быть минимум 2 символа",
+                errorFirebase: "Ошибка подключения"
+            },
+            en: {
+                welcome: "Welcome!",
+                nicknamePlaceholder: "Your nickname",
+                startBtn: "Start chatting",
+                online: "online",
+                loading: "Loading...",
+                noUsers: "👥 No other users\nShare the link with a friend",
+                settings: "Settings",
+                theme: "Theme:",
+                language: "Language:",
+                logout: "Logout",
+                messagePlaceholder: "Message...",
+                back: "Back",
+                errorName: "Nickname must be at least 2 characters",
+                errorFirebase: "Connection error"
+            },
+            ar: {
+                welcome: "مرحباً!",
+                nicknamePlaceholder: "اسم المستخدم",
+                startBtn: "ابدأ المحادثة",
+                online: "متصل",
+                loading: "جاري التحميل...",
+                noUsers: "👥 لا يوجد مستخدمين آخرين\nشارك الرابط مع صديق",
+                settings: "الإعدادات",
+                theme: "المظهر:",
+                language: "اللغة:",
+                logout: "تسجيل الخروج",
+                messagePlaceholder: "رسالة...",
+                back: "رجوع",
+                errorName: "يجب أن يكون الاسم على الأقل حرفين",
+                errorFirebase: "خطأ في الاتصال"
+            }
+        };
+
+        let currentLang = localStorage.getItem('lpp_lang') || 'ru';
+        let currentTheme = localStorage.getItem('lpp_theme') || 'light';
+
+        // ========== ПРИМЕНЕНИЕ ТЕМЫ И ЯЗЫКА ==========
+        function applyTheme() {
+            document.body.classList.remove('dark', 'light');
+            if (currentTheme === 'dark') {
+                document.body.classList.add('dark');
+            } else {
+                document.body.classList.add('light');
+            }
+            document.getElementById('themeSelect').value = currentTheme;
+        }
+
+        function applyLanguage() {
+            const t = translations[currentLang];
+            document.getElementById('regTitle').innerText = t.welcome;
+            document.getElementById('nickname').placeholder = t.nicknamePlaceholder;
+            document.getElementById('registerBtn').innerText = t.startBtn;
+            document.getElementById('settingsTitle').innerText = t.settings;
+            document.getElementById('themeLabel').innerText = t.theme;
+            document.getElementById('langLabel').innerText = t.language;
+            document.getElementById('logoutBtn').innerText = t.logout;
+            document.getElementById('messageInput').placeholder = t.messagePlaceholder;
+            // RTL для арабского
+            if (currentLang === 'ar') {
+                document.body.classList.add('rtl');
+                document.getElementById('backBtn').innerHTML = '→';
+            } else {
+                document.body.classList.remove('rtl');
+                document.getElementById('backBtn').innerHTML = '←';
+            }
+            // Обновляем динамические тексты, которые уже загружены
+            updateDynamicTexts();
+        }
+
+        function updateDynamicTexts() {
+            const t = translations[currentLang];
+            const onlineSpan = document.getElementById('onlineCount');
+            if (onlineSpan && onlineSpan.innerText.includes('онлайн')) {
+                const num = onlineSpan.innerText.split(' ')[0];
+                onlineSpan.innerText = num + ' ' + t.online;
+            }
+            const usersListDiv = document.getElementById('usersList');
+            if (usersListDiv && usersListDiv.innerHTML.includes('Нет других пользователей')) {
+                usersListDiv.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-secondary);">${t.noUsers}</div>`;
+            }
+        }
+
+        // Сохранение настроек
+        function saveTheme(theme) {
+            currentTheme = theme;
+            localStorage.setItem('lpp_theme', theme);
+            applyTheme();
+        }
+        function saveLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('lpp_lang', lang);
+            applyLanguage();
+        }
+
+        // ========== ОСТАЛЬНАЯ ЛОГИКА (без изменений, но с поддержкой переводов) ==========
         let myId = null;
         let myName = null;
         let currentChatId = null;
         let currentChatName = null;
-        let currentMessagesRef = null;     // ссылка на слушатель сообщений
-        let currentChatListener = null;    // функция-слушатель, чтобы отключать
+        let currentMessagesRef = null;
+        let currentChatListener = null;
 
-        // ========== ВСПОМОГАТЕЛЬНЫЕ ==========
         function showScreen(screenId) {
             document.getElementById('registerScreen').classList.add('hidden');
             document.getElementById('mainScreen').classList.add('hidden');
@@ -368,26 +555,20 @@
         }
 
         function showToast(msg) {
-            alert(msg);  // можно заменить на красивое уведомление
+            alert(msg);
         }
 
-        // ========== РЕГИСТРАЦИЯ ==========
+        // Регистрация
         function register() {
             const nickname = document.getElementById('nickname').value.trim();
+            const t = translations[currentLang];
             if (nickname.length < 2) {
-                document.getElementById('regError').innerText = 'Никнейм должен быть минимум 2 символа';
+                document.getElementById('regError').innerText = t.errorName;
                 return;
             }
             myId = Date.now() + '_' + Math.random().toString(36).substr(2, 6);
             myName = nickname;
-
-            const userData = {
-                id: myId,
-                name: myName,
-                online: true,
-                lastSeen: Date.now()
-            };
-
+            const userData = { id: myId, name: myName, online: true, lastSeen: Date.now() };
             db.ref('users/' + myId).set(userData)
                 .then(() => {
                     localStorage.setItem('lpp_user', JSON.stringify({ id: myId, name: myName }));
@@ -397,34 +578,31 @@
                 })
                 .catch(err => {
                     console.error(err);
-                    document.getElementById('regError').innerText = 'Ошибка: ' + err.message;
+                    document.getElementById('regError').innerText = t.errorFirebase;
                 });
         }
 
-        // ========== ЗАГРУЗКА СПИСКА ПОЛЬЗОВАТЕЛЕЙ ==========
         function loadUsers() {
             db.ref('users').on('value', (snapshot) => {
                 const users = snapshot.val() || {};
                 renderUsersList(users);
                 updateOnlineCount(users);
             }, (error) => {
-                console.error('Ошибка загрузки пользователей:', error);
-                document.getElementById('usersList').innerHTML = '<div style="text-align:center;padding:40px;color:#888;">Ошибка загрузки. Проверьте правила Firebase.</div>';
+                console.error(error);
+                document.getElementById('usersList').innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-secondary);">${translations[currentLang].errorFirebase}</div>`;
             });
         }
 
-        // ПОЛУЧАЕМ ИМЯ ПОЛЬЗОВАТЕЛЯ (из разных полей)
         function getUserName(user) {
-            if (user.name) return user.name;
-            if (user.nickname) return user.nickname;
-            return 'Без имени';
+            return user.name || user.nickname || 'Без имени';
         }
 
         function renderUsersList(users) {
             const container = document.getElementById('usersList');
             const list = Object.values(users).filter(u => u.id !== myId);
+            const t = translations[currentLang];
             if (list.length === 0) {
-                container.innerHTML = '<div style="text-align:center;padding:40px;color:#888;">👥 Нет других пользователей<br><small>Поделись ссылкой с другом</small></div>';
+                container.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-secondary);">${t.noUsers}</div>`;
                 return;
             }
             container.innerHTML = list.map(user => {
@@ -434,7 +612,7 @@
                         <div class="user-avatar">${user.online ? '🟢' : '⚫'}</div>
                         <div>
                             <div class="user-name">${escapeHtml(displayName)}</div>
-                            <div class="user-status">${user.online ? 'Онлайн' : 'Офлайн'}</div>
+                            <div class="user-status">${user.online ? '🟢 ' + t.online : '⚫ Offline'}</div>
                         </div>
                     </div>
                 `;
@@ -443,39 +621,30 @@
 
         function updateOnlineCount(users) {
             const online = Object.values(users).filter(u => u.online === true && u.id !== myId).length;
-            document.getElementById('onlineCount').innerText = online + ' онлайн';
+            const t = translations[currentLang];
+            document.getElementById('onlineCount').innerHTML = online + ' ' + t.online;
         }
 
-        // ========== ЧАТ ==========
         function openChat(userId, userName) {
-            // Отключаем старый слушатель, если был
             if (currentMessagesRef && currentChatListener) {
                 currentMessagesRef.off('child_added', currentChatListener);
             }
-
             currentChatId = userId;
             currentChatName = userName;
             document.getElementById('chatTitle').innerText = userName;
-            // Очищаем сообщения
             document.getElementById('messagesList').innerHTML = '';
             showScreen('chatScreen');
 
             const chatRef = getChatRef();
             currentMessagesRef = chatRef;
 
-            // Загружаем историю (один раз)
             chatRef.limitToLast(50).once('value', (snapshot) => {
                 const messages = snapshot.val();
-                if (messages) {
-                    const msgsArray = Object.values(messages);
-                    msgsArray.forEach(msg => displayMessage(msg));
-                }
+                if (messages) Object.values(messages).forEach(msg => displayMessage(msg));
             });
 
-            // Слушаем новые сообщения (сохраняем функцию, чтобы потом отключить)
             const newMsgListener = (snapshot) => {
                 const msg = snapshot.val();
-                // Проверяем, не добавлено ли уже это сообщение (по id)
                 if (!document.querySelector(`[data-msg-id="${msg.id}"]`)) {
                     displayMessage(msg);
                 }
@@ -498,10 +667,7 @@
             const div = document.createElement('div');
             div.className = `message ${isMy ? 'my' : 'other'}`;
             div.setAttribute('data-msg-id', msg.id);
-            div.innerHTML = `
-                ${escapeHtml(msg.text)}
-                <div class="message-time">${time}</div>
-            `;
+            div.innerHTML = `${escapeHtml(msg.text)}<div class="message-time">${time}</div>`;
             container.appendChild(div);
             container.scrollTop = container.scrollHeight;
         }
@@ -510,7 +676,6 @@
             const input = document.getElementById('messageInput');
             const text = input.value.trim();
             if (!text || !currentChatId) return;
-
             const msg = {
                 id: Date.now() + '_' + Math.random(),
                 senderId: myId,
@@ -522,36 +687,7 @@
             input.value = '';
         }
 
-        // ========== ПРОФИЛЬ И ВЫХОД ==========
-        function showProfile() {
-            document.getElementById('modalName').innerText = myName;
-            document.getElementById('profileModal').classList.remove('hidden');
-        }
-
-        function logout() {
-            if (confirm('Выйти?')) {
-                db.ref('users/' + myId).update({ online: false });
-                localStorage.removeItem('lpp_user');
-                location.reload();
-            }
-        }
-
-        // ========== ОНЛАЙН СТАТУС ==========
-        function startOnlinePing() {
-            setInterval(() => {
-                if (myId) {
-                    db.ref('users/' + myId).update({ online: true, lastSeen: Date.now() });
-                }
-            }, 15000);
-
-            window.addEventListener('beforeunload', () => {
-                if (myId) db.ref('users/' + myId).update({ online: false });
-            });
-        }
-
-        // ========== НАВИГАЦИЯ ==========
         function backToMain() {
-            // Отключаем слушатель сообщений
             if (currentMessagesRef && currentChatListener) {
                 currentMessagesRef.off('child_added', currentChatListener);
                 currentMessagesRef = null;
@@ -559,6 +695,27 @@
             }
             currentChatId = null;
             showScreen('mainScreen');
+        }
+
+        function showSettings() {
+            document.getElementById('settingsModal').classList.remove('hidden');
+        }
+
+        function logout() {
+            if (confirm(translations[currentLang].logout + '?')) {
+                db.ref('users/' + myId).update({ online: false });
+                localStorage.removeItem('lpp_user');
+                location.reload();
+            }
+        }
+
+        function startOnlinePing() {
+            setInterval(() => {
+                if (myId) db.ref('users/' + myId).update({ online: true, lastSeen: Date.now() });
+            }, 15000);
+            window.addEventListener('beforeunload', () => {
+                if (myId) db.ref('users/' + myId).update({ online: false });
+            });
         }
 
         function escapeHtml(str) {
@@ -571,7 +728,6 @@
             });
         }
 
-        // ========== ПРОВЕРКА СОХРАНЁННОГО ПОЛЬЗОВАТЕЛЯ ==========
         function checkSavedUser() {
             const saved = localStorage.getItem('lpp_user');
             if (saved) {
@@ -587,25 +743,25 @@
             }
         }
 
-        // ========== ПОДКЛЮЧАЕМ КНОПКИ ==========
-        document.getElementById('registerBtn').onclick = register;
-        document.getElementById('nickname').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') register();
-        });
-        document.getElementById('sendMsgBtn').onclick = sendMessage;
-        document.getElementById('messageInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendMessage();
-        });
-        document.getElementById('backBtn').onclick = backToMain;
-        document.getElementById('profileBtn').onclick = showProfile;
-        document.getElementById('logoutBtn').onclick = logout;
-        document.getElementById('profileModal').onclick = (e) => {
-            if (e.target === document.getElementById('profileModal')) {
-                document.getElementById('profileModal').classList.add('hidden');
-            }
-        };
+        // Инициализация настроек
+        function initSettings() {
+            applyTheme();
+            applyLanguage();
+            document.getElementById('themeSelect').addEventListener('change', (e) => saveTheme(e.target.value));
+            document.getElementById('langSelect').addEventListener('change', (e) => saveLanguage(e.target.value));
+        }
 
-        // СТАРТ
+        // Подключение кнопок
+        document.getElementById('registerBtn').onclick = register;
+        document.getElementById('nickname').addEventListener('keypress', (e) => { if (e.key === 'Enter') register(); });
+        document.getElementById('sendMsgBtn').onclick = sendMessage;
+        document.getElementById('messageInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+        document.getElementById('backBtn').onclick = backToMain;
+        document.getElementById('profileBtn').onclick = showSettings;
+        document.getElementById('logoutBtn').onclick = logout;
+        document.getElementById('settingsModal').onclick = (e) => { if (e.target === document.getElementById('settingsModal')) document.getElementById('settingsModal').classList.add('hidden'); };
+
+        initSettings();
         checkSavedUser();
     </script>
 </body>
