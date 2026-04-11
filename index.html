@@ -2,6 +2,12 @@
 <html lang="ru">
 <head>
 function updateOnlineStatus() {
+firebase.database().ref('users/' + myId).once('value').then(s => {
+    if(s.val()?.banned) {
+        firebase.database().ref('users/' + myId).update({ online: false });
+        return;
+    }
+});
     setInterval(() => {
         if(myId) {
             // Проверяем, не забанен ли пользователь
@@ -520,6 +526,16 @@ function updateOnlineStatus() {
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
     <script>
+function checkBan() {
+    firebase.database().ref('users/' + myId).once('value').then(s => {
+        const user = s.val();
+        if(user && user.banned === true) {
+            alert('🚫 Вас забанили! Вы не можете пользоваться мессенджером.');
+            localStorage.removeItem('lpp_user');
+            location.reload();
+        }
+    });
+}
         // ========== ВСТАВЬ СВОИ КЛЮЧИ FIREBASE ==========
         const firebaseConfig = {
   apiKey: "AIzaSyD8UUafDtOr6mof098U0uW8yhRLIv76zZY",
