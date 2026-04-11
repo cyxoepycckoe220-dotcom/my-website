@@ -1,35 +1,9 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-function updateOnlineStatus() {
-firebase.database().ref('users/' + myId).once('value').then(s => {
-    if(s.val()?.banned) {
-        firebase.database().ref('users/' + myId).update({ online: false });
-        return;
-    }
-});
-    setInterval(() => {
-        if(myId) {
-            // Проверяем, не забанен ли пользователь
-            firebase.database().ref('users/' + myId).once('value').then(s => {
-                const user = s.val();
-                if(user && user.banned === true) {
-                    // Если забанен — выключаем онлайн и выкидываем
-                    firebase.database().ref('users/' + myId).update({ online: false });
-                    localStorage.removeItem('lpp_user');
-                    alert('🚫 Вас забанили! Вы не можете оставаться в сети.');
-                    location.reload();
-                } else {
-                    // Если не забанен — обновляем онлайн
-                    firebase.database().ref('users/' + myId).update({ online: true, lastSeen: Date.now() });
-                }
-            });
-        }
-    }, 5000); // Проверка каждые 5 секунд
-}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>LPP Messenger — красивый мессенджер</title>
+    <title>LPP Messenger</title>
     <style>
         * {
             margin: 0;
@@ -461,7 +435,7 @@ firebase.database().ref('users/' + myId).once('value').then(s => {
     </style>
 </head>
 <body>
-    <div class="header">💬 LPP Messenger</div>
+    <div class="header">💬LPP мессенджер</div>
 
     <!-- Регистрация -->
     <div id="registerScreen" class="register-container">
